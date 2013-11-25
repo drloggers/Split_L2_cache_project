@@ -21,7 +21,11 @@ module check_cache();
       
       for(i=0;i<`associativity&&check_cache[0]==0;i=i+1)
       begin
-     
+        /* 
+        checking for valid bit, if set then read
+        */
+     if(m.cache[index][i][`mesi_bits+`counter_size+`tag_size-1:`tag_size+`counter_size+1] == 1)
+       begin
        $display("Cache Content=%h",m.cache[index][i][(`mesi_bits+`counter_size-1):0]);
        if((m.cache[index][i][(`mesi_bits+`counter_size-1):0])==tag)
          begin
@@ -31,7 +35,7 @@ module check_cache();
          end
        
       end
-     
+   end
     end
     endfunction
     
@@ -50,19 +54,19 @@ function LRU;
     begin
       
      if(m.cache[index][i][`counter_size+`tag_size-1:`tag_size]<7)
-      m.cache[index][i][`counter_size+`tag_size-1:`tag_size]=m.cache[index][i][`counter_size+`tag_size-1:`tag_size]+1;
+      m.cache[index][i][`counter_size+`tag_size-1:`tag_size] = m.cache[index][i][`counter_size+`tag_size-1:`tag_size]+1;
       end
       
       //`counter_size not allowed in replication. `counter_size includes $ln operation. Treats it as zero somehow
       m.cache[index][way][`counter_size+`tag_size-1:`tag_size]={count_bits{1'b0}};
      
-       $display("================Counter States are======================\n");
+      /* $display("================Counter States are======================\n");
      for(i=0;i<`associativity;i=i+1)
     begin
     
       $display("%b\n",m.cache[index][i][`counter_size+`tag_size-1:`tag_size]);
       end 
-      
+      */
       
     end
     endfunction
@@ -80,7 +84,7 @@ function LRU;
          m.cache[index][way][`tag_size+`counter_size-1:0]={{count_bits{1'b0}},tag};
          end
          endfunction
-         
+      
          
   function [`counter_size:0]empty_way;
     input [`index_size-1:0]index;
@@ -99,7 +103,7 @@ function LRU;
       endfunction
       
       
-      function [`counter_size:0]evict_this_way;
+      function [`counter_size:0]find_evict_way;
         input [`index_size-1:0]index;
         integer i;
         reg[`counter_size-1:0] max_val;
@@ -111,16 +115,70 @@ function LRU;
           if(m.cache[index][i][`counter_size+`tag_size-1:`tag_size] > max_val)
           begin
             max_val = m.cache[index][i][`counter_size+`tag_size-1:`tag_size];
-            evict_this_way = i;
+            find_evict_way = i;
           end
         end
-          //Sorting !
           end
           endfunction
+      
+      function evict_way;
+        input [`index_size-1:0]index;
+        input [`counter_size-1:0]way;
+        begin
+          m.cache[index][way][`mesi_bits+`counter_size+`tag_size-1:`tag_size+`counter_size+1] = 0;
+        end 
+    endfunction 
+    
+    function check_dirty;
+        input [`index_size-1:0]index;
+        input [`counter_size-1:0]way;
+        begin
+          if(m.cache[index][way][`mesi_bits+`counter_size+`tag_size-2:`tag_size+`counter_size] == 1)
+            check_dirty = 1;
+          else
+            check_dirty = 0;
+        end 
+      
+    endfunction
         
+      function cache_DV_write;
+      input [`mesi_bits-1:0]dv_bits;
+      input [`index_size-1:0]index;
+      input [`tag_size-1:0]tag;
+      input [`counter_size-1:0]way;
+      begin
+        m.cache[index][way][`mesi_bits+`counter_size+`tag_size:`tag_size+`counter_size] = dv_bits;
+      end
+    endfunction
     
-  
-    
+    function print;
+      input dummy;
+      integer i,j;
+      begin
+      $display("******************Contents of cache****************\n      Index       Coloumn   tags");
+      for(j=0;j<`set_count;j=j+1)
+    begin
+    for(i=0;i<`associativity;i=i+1)
+    begin
+      if(m.cache[j][i][`mesi_bits+`counter_size+`tag_size-1:`tag_size+`counter_size+1] == 1)
+      $display("%d  %d  %b",j,i,m.cache[j][i][`tag_size-1:0]);
+    end
+end
+    end
+    endfunction
+
+/*    
+    function[`mesi_bits+`tag_size+`counter_size-1:0] write_mesi_bits;
+      input [`mesi_bits-1:0]mesi_bits;
+      input [`index_size-1:0]index;
+      input [`tag_size-1:0]tag;
+      input [`counter_size-1:0]way;
+      begin
+        m.cache[index][way]['mesi_bits+`counter_size+`tag_size:`tag_size+`counter_size] = mesi_bits;
+        write_mesi_bits = m.cache[index][way][`mesi_bits+`tag_size+`counter_size-1:0];
+      end
+    endfunction
+*/    
     
    
 endmodule
