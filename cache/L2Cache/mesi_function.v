@@ -3,27 +3,8 @@
 function of MESI protocol
 
 */
-
+`include "conf.v"
 module mesi_function();
-
-parameter M   =   2'b00;
-parameter E   =   2'b01;
-parameter S   =   2'b10;
-parameter I   =   2'b11;
-
-parameter NoHIT   = 2'b00;
-parameter HIT     = 2'b01;
-parameter HITM    = 2'b10;
-
-parameter L1_read           =   4'b0000;
-parameter L1_write          =   4'b0001;
-parameter L1_inst_read      =   4'b0010;
-parameter snoop_invalidate  =   4'b0011;
-parameter snoop_read        =   4'b0100;
-parameter snoop_write       =   4'b0101;
-parameter snoop_readRFO     =   4'b0110;
-parameter clear             =   4'b1000;
-parameter print_cache       =   4'b1001;
 
 function[3:0] mesi_function;
 input [1:0]presentState;
@@ -34,139 +15,109 @@ begin
   case(command)
     L1_read:
       begin
-        if(presentState == M)
-          begin
-            resultState = M;
-          end
-        else if(presentState == E)
-          begin
-            resultState = E;
-          end
-        else if(presentState == S)
-          begin
-            resultState = S;   
-          end
+        if(presentState == `M)
+            resultState = `M;
+        else if(presentState == `E)
+            resultState = `E;
+          
+        else if(presentState == `S)
+            resultState = `S;   
+          
         else
-          begin
-            resultState = E;  
-          end
+            resultState = `E;  
+          
       end
     L1_write :
       begin
-        if(presentState == M)
-          begin
-            resultState = M;
-          end
-        else if(presentState == E)
-          begin
-            resultState = M;
-          end
-        else if(presentState == S)
-          begin
-            resultState = M;
-          end
-        else
-          begin
-            resultState = M;
-          end
+        if(presentState == `M)
+            resultState = `M;
+                  else if(presentState == `E)
+            resultState = `M;
+          
+        else if(presentState == `S)
+            resultState = `M;
+                  else
+            resultState = `M;
+          
       end
     L1_inst_read :
       begin
-        if(presentState == M)
-          begin
-              resultState = M;
-          end
-        else if(presentState == E)
-          begin
-            resultState = E;
-          end
-        else if(presentState == S)
-          begin
-            resultState = S;   
-          end
-        else
-          begin
-            resultState = E;  
-          end
-      end
+        if(presentState == `M)
+              resultState = `M;
+           else if(presentState == `E)
+            resultState = `E;
+          else if(presentState == `S)
+            resultState = `S;   
+          else
+            resultState = `E;  
+                end
     snoop_invalidate :
       begin
-        resultState = I;
+        resultState = `I;
       end  
     snoop_read :
       begin
-        if(presentState == M)
+        if(presentState == `M)
           begin
               resultResponse = HITM;
-              resultState = S;
+              resultState = `S;
           end
-        else if(presentState == E)
+        else if(presentState == `E)
           begin
               resultResponse = HIT;
-              resultState = S;
+              resultState = `S;
           end
-        else if(presentState == S)
-          begin
-            resultState = S;
-          end
+        else if(presentState == `S)
+            resultState = `S;
         else
           begin
             resultResponse = HIT;
-            resultState = S;
+            resultState = `S;
           end
       end  
     snoop_write :
       begin
-      if(presentState == M)
+      if(presentState == `M)
           begin
               resultResponse = HITM;
-              resultState = I;
+              resultState = `I;
           end
-        else if(presentState == E)
+        else if(presentState == `E)
           begin
             resultResponse = HIT;
-            resultState = I;
+            resultState = `I;
           end
-        else if(presentState == S)
+        else if(presentState == `S)
           begin
             resultResponse = HIT;
-                resultState = I;
+                resultState = `I;
           end
         else
-          begin
-            resultState = I;
-          end
+            resultState = `I;
         end  
     snoop_readRFO :
       begin
-        if(presentState == M)
+        if(presentState == `M)
           begin
              resultResponse = HITM;
-                  resultState = I;
+                  resultState = `I;
           end
-        else if(presentState == E)
+        else if(presentState == `E)
           begin
              resultResponse = HIT;
-             resultState = I;
+             resultState = `I;
           end
-        else if(presentState == S)
+        else if(presentState == `S)
           begin
          resultResponse = HIT;
-               resultState = I;
-          end
-        else
-          begin
-            
+               resultState = `I;
           end
       end  
     clear:
       begin
-        resultState = I;
+        resultState = `I;
       end  
-    print_cache :
-      begin
-        
-      end 
+   
       endcase 
       mesi_function = {resultState,resultResponse};
 end

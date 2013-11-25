@@ -14,19 +14,30 @@
 `define counter_size $ln(`associativity)/$ln(2)
 `define mesi_bits 2
 
+//constants
+`define M 2'b00
+`define E 2'b01
+`define S 2'b10
+`define I 2'b11
+
+`define NoHIT 2'b00
+`define HIT   2'b01
+`define HITM  2'b10
+
 //Debug Options 
 `define fileop 0
 `define debug 1
 
 //Operation Trace File 
-`define L1DR 0
-`define L1DW 1
-`define L1IR 2
-`define SIREQ 3
-`define SRREQ 4
-`define SWREQ 5
-`define SRFO 6
-`define CCLR 8
-`define PRINT 9
+`define L1_DataCacheRead 0
+`define L1_DataCacheWrite 1
+`define L1_InstructionCacheRead 2
+`define SnoopInvalidateRequest 3
+`define SnoopReadRequest 4
+`define SnoopWriteRequest 5
+`define SnoopRFO 6
+`define ClearCache 8
+`define PrintCache 9
+
 
 // Include facility of code sanity- check lenghts of address and index bits are okay 

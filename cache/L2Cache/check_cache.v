@@ -166,6 +166,8 @@ function LRU;
 end
     end
     endfunction
+    
+    
 
 /*    
     function[`mesi_bits+`tag_size+`counter_size-1:0] write_mesi_bits;

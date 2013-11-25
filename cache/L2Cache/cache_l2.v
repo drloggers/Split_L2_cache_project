@@ -53,7 +53,7 @@ begin
         end
     
       case(command)
-        `L1DR: begin
+        `L1_DataCacheRead: begin
               readOp = readOp + 1;
               //Call Check Cache Function
               result = c.check_cache(index,tag);
@@ -78,7 +78,7 @@ begin
               //Call Cache Write
                end
          
-        `L1DW: begin
+        `L1_DataCacheWrite: begin
               writeOp = writeOp + 1;
               //Call Check Cache Function
               result = c.check_cache(index,tag);
@@ -105,7 +105,7 @@ begin
           end 
                end
                
-        `L1IR: begin
+        `L1_InstructionCacheRead: begin
               readOp = readOp + 1;
               //Call Check Cache Function
               result = c.check_cache(index,tag);
@@ -129,35 +129,35 @@ begin
               end
               //Call Cache Write
                end
-        `SIREQ: begin
+        `SnoopInvalidateRequest: begin
               //Call Check Cache 
               //Call Put Snoop Function 
               //Call MESI
                 end
         
-        `SRREQ: begin
+        `SnoopReadRequest: begin
                 //Call Check Cache
                 //Call Put Snoop Function
                 //Call MESI
                 end
                 
-        `SWREQ: begin
+        `SnoopWriteRequest: begin
                 //Call Check Cache
                 //Call Put Snoop
                 //Call MESI
                 end
                 
-        `SRFO: begin 
+        `SnoopRFO: begin 
                //Call Check Cache 
                //Call Put Snoop
                //Call MESI 
                end
                
-        `CCLR: begin
+        `ClearCache: begin
                //Clear all lines 
                end
                
-        `PRINT: begin
+        `PrintCache: begin
               //Call print function
               dummy = c.print(0);
                 end 
