@@ -36,7 +36,7 @@
 
 //Debug Options 
 `define fileop 0
-`define debug 0
+`define debug 1
 
 //Operation Trace File 
 `define L1_DataCacheRead 0

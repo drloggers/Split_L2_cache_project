@@ -218,12 +218,14 @@ function[1:0] GetSnoopResult;
     input[31:0] Address;
     input[7:0] Operation;  
       begin
-      if(Address[18:16] <= 2'b01)
+       /* if(Address[18:16] <= 2'b01)
           GetSnoopResult = `NoHIT;
       else if(Address[18:16] == 2'b10)
           GetSnoopResult = `HIT;
       else
           GetSnoopResult = `HITM;   
+      */
+      GetSnoopResult = `NoHIT;
       end 
 endfunction
 

@@ -30,7 +30,7 @@ reg dummy;
 initial
 begin
   
-  data_file = $fopen("cc1.din", "r");
+  data_file = $fopen("trace.txt", "r");
   eof = $feof(data_file);
    hitCount = 0;
    readOp = 0;

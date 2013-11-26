@@ -51,7 +51,7 @@ begin
        mesi = {`Invalid,`nothing};
     end
     default:begin
-      mesi = {`Exclusive,`memoryRead};
+      mesi = {`Exclusive,`nothing};
     end
       endcase
 end
