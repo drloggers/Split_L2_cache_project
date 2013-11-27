@@ -191,7 +191,7 @@ initial
                               endcase
                             if(result[0])
                                //Call MESI
-                               dummy = c.set_mesi(index,tag,result[2:1],command,`HIT);
+                               dummy = c.set_mesi(index,tag,result[3:1],command,`HIT);
                            end
                 
         `SnoopWriteRequest: begin
@@ -216,7 +216,7 @@ initial
                               endcase
                             if(result[0])
                                //Call MESI
-                               dummy = c.set_mesi(index,tag,result[2:1],command,`HIT);
+                               dummy = c.set_mesi(index,tag,result[3:1],command,`HIT);
                             end
                 
         `SnoopRFO: begin 
@@ -241,7 +241,7 @@ initial
                               endcase
                             if(result[0])
                                //Call MESI
-                               dummy = c.set_mesi(index,tag,result[2:1],command,`HITM);
+                               dummy = c.set_mesi(index,tag,result[3:1],command,`HITM);
                end
                
         `ClearCache: begin
