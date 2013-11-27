@@ -51,11 +51,6 @@ initial
           begin
              $display("Address is=%b",address);
              $display("Offset=%h Index=%h Tag=%h",offset,index,tag);
-            // response=c.check_cache(index,tag);
-            // $display("Response Is=%b",response);
-            // a=c.LRU(index,response[`counter_size:1]);
-            // $display("evicted  way : %b", c.evict_this_way(index));
-            //$display("reading from address : %b :: valid bits : %b",address,c.check_cache(index,tag));
           end
     
       case(command)
@@ -73,6 +68,7 @@ initial
                                   begin
                                     way = c.find_evict_way(index);
                                     dummy = c.evict_way(index,way);
+                                    if(`L1_cache_comm)
                                     $display("L1_cache I %h",address);
                                   end
                                 dummy = c.cache_write(index,tag,way);
@@ -102,6 +98,7 @@ initial
                                     begin
                                       way = c.find_evict_way(index);
                                       dummy = c.evict_way(index,way);
+                                      if(`L1_cache_comm)
                                       $display("L1_cache I %h",address);
                                     end
                                   dummy = c.cache_write(index,tag,way);
@@ -135,6 +132,7 @@ initial
                                           begin
                                           way = c.find_evict_way(index);
                                           dummy = c.evict_way(index,way);
+                                          if(`L1_cache_comm)
                                           $display("L1_cache I %h",address);
                                           end
                                         dummy = c.cache_write(index,tag,way);
@@ -160,7 +158,8 @@ initial
                                       dummy = c.PutSnoopResult(address,`I);
                                       //Call MESI
                                       dummy = c.invalidateLine(index,result[2:1]);
-                                      $display("L1 I %h",address);
+                                      if(`L1_cache_comm)
+                                      $display("L1_cache I %h",address);
                                     end
                                   
                                   end
@@ -171,14 +170,17 @@ initial
                             //Call Put Snoop Function 
                             case(c.PutSnoopResult(address,`R))
                                 `HIT:begin
+                                    if(`snoopResult)
                                       $display("SR HIT");
                                      end
                                 
                                 `NoHIT:begin
+                                      if(`snoopResult)
                                       $display("SR no HIT");
                                      end
                                 
                                 `HITM:begin
+                                      if(`snoopResult)
                                       $display("SR HITM");
                                      end
                               endcase
@@ -193,14 +195,17 @@ initial
                             //Call Put Snoop Function 
                             case(c.PutSnoopResult(address,`W))
                                 `HIT:begin
+                                      if(`snoopResult)
                                       $display("SR HIT");
                                      end
                                 
                                 `NoHIT:begin
+                                      if(`snoopResult)
                                       $display("SR no HIT");
                                      end
                                 
                                 `HITM:begin
+                                      if(`snoopResult)
                                       $display("SR HITM");
                                      end
                               endcase
@@ -215,14 +220,17 @@ initial
                             //Call Put Snoop Function 
                             case(c.PutSnoopResult(address,`M))
                                 `HIT:begin
+                                      if(`snoopResult)
                                       $display("SR HIT");
                                      end
                                 
                                 `NoHIT:begin
+                                      if(`snoopResult)
                                       $display("SR no HIT");
                                      end
                                 
                                 `HITM:begin
+                                      if(`snoopResult)
                                       $display("SR HITM");
                                      end
                               endcase
@@ -244,7 +252,7 @@ initial
                 end 
                 
         default:begin
-                $display("\n This Command is not supported by current version. Please contact Sanket,Sameer and Rob");
+                $display("\n This Command (i.e. %d)is not supported by current version. Please contact Sanket,Sameer and Rob", command);
                 end
       endcase
   end

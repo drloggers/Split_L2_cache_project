@@ -4,8 +4,6 @@ Configuration File. Contains parameters, defination of essential variables
 *****************************************************************************************************************************************
 ****************************************************************************************************************************************/
 
-
-
 //Cache Parameters
 `define add_size 32
 `define associativity 8            //Associtivity (lines/set)
@@ -42,6 +40,9 @@ Configuration File. Contains parameters, defination of essential variables
 //Debug Options 
 `define fileop 0
 `define debug 0
+`define L1_cache_comm 1
+`define snoopResult 0
+`define busOperation 0
 
 //Operation Trace File 
 `define L1_DataCacheRead 0
