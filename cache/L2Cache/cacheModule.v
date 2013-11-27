@@ -14,9 +14,12 @@ module cacheModule();
   Initializing Block
   */
   parameter count_bits=`counter_size;
+  parameter offset_size=`offset_size;
   cache_mem m();
   BusOperation bus();
   mesi_function mesi_function();
+  
+  integer evict_count,busRead,busWrite,busModify,busInvalid;
   
   /**********************************
   Cache Related Functions starts here
@@ -60,15 +63,15 @@ module cacheModule();
      m.cache[index][way][`mesi_start:`mesi_end] = result[3:2];
      case(result[1:0])
          `memoryRead:begin
-                     if(!bus.busRead({tag,index}))
+                     if(!bus.busRead({tag,index,{offset_size{1'b0}}}))
                        $display("bus read failed!");
                     end
           `memoryWrite:begin
-                      if(!bus.busWrite({tag,index}))
+                      if(!bus.busWrite({tag,index,{offset_size{1'b0}}}))
                         $display("bus write failed!");
                       end
           `RFO:begin
-                    if(!bus.busModify({tag,index}))
+                    if(!bus.busModify({tag,index,{offset_size{1'b0}}}))
                       $display("bus modify failed!");
               end
       endcase 
@@ -83,6 +86,9 @@ module cacheModule();
     input [`index_size-1:0]index;
     input [`counter_size-1:0]way;
     begin
+      if(m.cache[index][way][`mesi_start:`mesi_end] == `Modified)
+        if(!bus.busWrite({m.cache[index][way][`tag_size-1:0],index,{offset_size{1'b0}}}))
+          $display("bus write operation failed");
       m.cache[index][way][`mesi_start:`mesi_end] = `Invalid;
       invalidateLine = 1;
     end 
@@ -165,9 +171,17 @@ module cacheModule();
      begin
       if(bus.busWrite({m.cache[index][way][`tag_size-1:0],index}))
       m.cache[index][way][`mesi_start:`mesi_end] = `Invalid;
+      evict_count = evict_count + 1;
       evict_way = 1'b1;       // return 1 if successfully evicted
      end 
   endfunction 
+  
+  function show_evict_count;
+    input dummy;
+    begin
+      show_evict_count = evict_count;
+    end
+  endfunction
   
   /*
   Clears the cache by making all lines invalid

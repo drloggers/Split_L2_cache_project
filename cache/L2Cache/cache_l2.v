@@ -12,7 +12,10 @@ module cache_l2();
 //Instantiation of Cache Memory. Further referenced as m.cache[set][column]
 cacheModule c();  //change this variable name to L2_cache_module
 mesi_function m();//change this to mesi_functions
+BusOperation bus();
 
+  parameter offset_size=`offset_size;
+  
 //File Handlers 
 integer data_file    ; // file handler
 integer scan_file,eof    ; // file handler
@@ -36,7 +39,7 @@ initial
   begin
     data_file = $fopen("trace.txt", "r");
     eof = $feof(data_file);
-    hitCount = 0; readOp = 0; writeOp = 0;
+    hitCount = 0; readOp = 0; writeOp = 0; 
     while(!eof)
       begin
         scan_file = $fscanf(data_file, "%d %h\n", command,address); 
@@ -71,6 +74,7 @@ initial
                                     if(`L1_cache_comm)
                                     $display("L1_cache I %h",address);
                                   end
+                                bus.busRead(tag,index,{offset_size{1'b0}});
                                 dummy = c.cache_write(index,tag,way);
                                 if(c.set_mesi(index,tag,way,command,c.GetSnoopResult(address,`R)))
                                   dummy = c.LRU(index,way);
@@ -101,6 +105,7 @@ initial
                                       if(`L1_cache_comm)
                                       $display("L1_cache I %h",address);
                                     end
+                                  bus.busRead({tag,index,{offset_size{1'b0}}});
                                   dummy = c.cache_write(index,tag,way);
                                   if(c.set_mesi(index,tag,way,command,c.GetSnoopResult(address,`W)))
                                   dummy = c.LRU(index,way);
@@ -111,6 +116,7 @@ initial
                                 //If Hit Call Cache Write Function
                               else
                                 begin
+                                  hitCount = hitCount + 1;
                                   //$display("Cache is write HIT");
                                   dummy = c.cache_write(index,result[3:1]);
                                   if(c.set_mesi(index,tag,way,command,c.GetSnoopResult(address,`W)))
@@ -155,13 +161,12 @@ initial
                                   //Call Put Snoop Function 
                                   if(result[0])
                                     begin
-                                      dummy = c.PutSnoopResult(address,`I);
+                                   //   dummy = c.PutSnoopResult(address,`I);
                                       //Call MESI
-                                      dummy = c.invalidateLine(index,result[2:1]);
+                                      dummy = c.invalidateLine(index,result[3:1]);
                                       if(`L1_cache_comm)
                                       $display("L1_cache I %h",address);
                                     end
-                                  
                                   end
         
         `SnoopReadRequest: begin
@@ -241,7 +246,7 @@ initial
                
         `ClearCache: begin
                       //Clear all lines
-                      $display("hit =%d, read =%d, write =%d",hitCount,readOp,writeOp);
+                      $display("hit=%d,read=%d,write=%d,hit ratio=%f %s",hitCount,readOp,writeOp,hitRatio,"%");
                       hitCount = 0; readOp = 0; writeOp = 0;
                       dummy = c.clearCache(0);
                end
@@ -252,12 +257,14 @@ initial
                 end 
                 
         default:begin
-                $display("\n This Command (i.e. %d)is not supported by current version. Please contact Sanket,Sameer and Rob", command);
+                $display("\n This Command-->%d is not supported by current version. Please contact Sanket,Sameer and Rob", command);
                 end
       endcase
   end
   hitRatio = hitCount*100 /(readOp+writeOp);
-  $display("hit =%d, read =%d, write =%d, hit ratio = %d percent",hitCount,readOp,writeOp,hitRatio);
+  $display("hit = %d, read = %d, write = %d, hit ratio= %f %s",hitCount,readOp,writeOp,hitRatio,"%",);
+  if(`debug)
+    $display("evict count = %d",m.show_evict_count);
 end
   
 endmodule 

@@ -11,7 +11,7 @@ module BusOperation();
   endfunction
  
   function busWrite;
-    input [31:0]address;
+    input [`add_size:0]address;
     if(`busOperation)
     $display("W %h",address);
   endfunction
