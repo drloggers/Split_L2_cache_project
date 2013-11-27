@@ -1,5 +1,8 @@
-// ECE 585 Fall 2013 
-//Configuration File. Contains parameter defination of essential variables 
+/****************************************************************************************************************************************
+*****************************************************************************************************************************************
+Configuration File. Contains parameters, defination of essential variables 
+*****************************************************************************************************************************************
+****************************************************************************************************************************************/
 
 //Cache Parameters
 `define add_size 32
@@ -51,3 +54,9 @@
 
 
 // Include facility of code sanity- check lenghts of address and index bits are okay 
+
+//Constants to access cache bits
+`define mesi_start `mesi_bits+`counter_size+`tag_size-1
+`define mesi_end `tag_size+`counter_size
+`define way_start `counter_size+`tag_size-1
+`define way_end `tag_size

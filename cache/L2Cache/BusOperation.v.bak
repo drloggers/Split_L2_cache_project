@@ -21,6 +21,7 @@ module BusOperation();
  
  function busInvalidate;
    input [31:0]address;
+   $display("I %b",address);
  endfunction
   
 endmodule
