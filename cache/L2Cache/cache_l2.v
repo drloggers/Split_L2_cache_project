@@ -74,7 +74,7 @@ initial
                                     if(`L1_cache_comm)
                                     $display("L1_cache I %h",address);
                                   end
-                                bus.busRead(tag,index,{offset_size{1'b0}});
+                                dummy = bus.busRead({tag,index,{offset_size{1'b0}}});
                                 dummy = c.cache_write(index,tag,way);
                                 if(c.set_mesi(index,tag,way,command,c.GetSnoopResult(address,`R)))
                                   dummy = c.LRU(index,way);
@@ -105,7 +105,7 @@ initial
                                       if(`L1_cache_comm)
                                       $display("L1_cache I %h",address);
                                     end
-                                  bus.busRead({tag,index,{offset_size{1'b0}}});
+                                  dummy = bus.busRead({tag,index,{offset_size{1'b0}}});
                                   dummy = c.cache_write(index,tag,way);
                                   if(c.set_mesi(index,tag,way,command,c.GetSnoopResult(address,`W)))
                                   dummy = c.LRU(index,way);
@@ -264,7 +264,7 @@ initial
   hitRatio = hitCount*100 /(readOp+writeOp);
   $display("hit = %d, read = %d, write = %d, hit ratio= %f %s",hitCount,readOp,writeOp,hitRatio,"%",);
   if(`debug)
-    $display("evict count = %d",m.show_evict_count);
+    $display("evict count = %d",c.show_evict_count);
 end
   
 endmodule 

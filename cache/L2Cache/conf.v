@@ -39,7 +39,7 @@ Configuration File. Contains parameters, defination of essential variables
 
 //Debug Options 
 `define fileop 0
-`define debug 0
+`define debug 1
 `define L1_cache_comm 1
 `define snoopResult 1
 `define busOperation 1
