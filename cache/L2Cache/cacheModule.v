@@ -104,11 +104,11 @@ module cacheModule();
     begin
         for(i=0;i<`associativity;i=i+1)
         begin
-           if(m.cache[index][i][`way_start:`way_end]<7)
-              m.cache[index][i][`way_start:`way_end] = m.cache[index][i][`way_start:`way_end]+1;
+           if(m.cache[index][i][`LRU_start:`LRU_end]<7)
+              m.cache[index][i][`LRU_start:`LRU_end] = m.cache[index][i][`LRU_start:`LRU_end]+1;
            end
       //`counter_size not allowed in replication. `counter_size includes $ln operation. Treats it as zero somehow
-      m.cache[index][way][`way_start:`way_end]={count_bits{1'b0}};
+      m.cache[index][way][`LRU_start:`LRU_end]={count_bits{1'b0}};
       LRU = 1'b1;
     end
   endfunction
@@ -153,9 +153,9 @@ module cacheModule();
         max_val = 10'd0;
         for(i=0;i<`associativity;i=i+1)
          begin
-          if(m.cache[index][i][`way_start:`way_end] > max_val)
+          if(m.cache[index][i][`LRU_start:`LRU_end] > max_val)
           begin
-            max_val = m.cache[index][i][`way_start:`way_end];
+            max_val = m.cache[index][i][`LRU_start:`LRU_end];
             find_evict_way = i;
           end
         end
@@ -169,13 +169,23 @@ module cacheModule();
     input [`index_size-1:0]index; 
     input [`counter_size-1:0]way;
      begin
-      if(bus.busWrite({m.cache[index][way][`tag_size-1:0],index}))
-      m.cache[index][way][`mesi_start:`mesi_end] = `Invalid;
-      evict_count = evict_count + 1;
-      evict_way = 1'b1;       // return 1 if successfully evicted
+      if(m.cache[index][way][`mesi_start:`mesi_end] == `Modified)
+        begin
+        if(!bus.busWrite({m.cache[index][way][`tag_size-1:0],index}))
+          $display("Bus write error");
+        end
+        m.cache[index][way][`mesi_start:`mesi_end] = `Invalid;
+        evict_count = evict_count + 1;
+        evict_way = 1'b1;       // return 1 if successfully evicted
      end 
   endfunction 
   
+  function init_evict_count;
+    input dummy;
+    begin
+      evict_count = 0;
+    end
+  endfunction
   function show_evict_count;
     input dummy;
     begin
@@ -208,13 +218,13 @@ module cacheModule();
     input dummy;
     integer i,j;
     begin
-      $display("******************Contents of cache****************\n      Index       Way       Contents");
+      $display("******************Contents of cache****************\n      Index         Way    mesi    tag   LRU");
       for(j=0;j<`set_count;j=j+1)
         begin
         for(i=0;i<`associativity;i=i+1)
           begin
             if(m.cache[j][i][`mesi_start:`mesi_end] != `Invalid)
-              $display("%d  %d  %h",j,i,m.cache[j][i][`tag_size-1:0]);
+              $display("%d %d    %b      %h   %h",j,i,m.cache[j][i][`mesi_start:`mesi_end],m.cache[j][i][`tag_size-1:0],m.cache[j][i][`LRU_start:`LRU_end]);
           end
         end
       print = 1'b1;

@@ -61,5 +61,5 @@ Configuration File. Contains parameters, defination of essential variables
 //Constants to access cache bits
 `define mesi_start `mesi_bits+`counter_size+`tag_size-1
 `define mesi_end `tag_size+`counter_size
-`define way_start `counter_size+`tag_size-1
-`define way_end `tag_size
+`define LRU_start `counter_size+`tag_size-1
+`define LRU_end `tag_size
