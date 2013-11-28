@@ -39,7 +39,7 @@ initial
   begin
     data_file = $fopen("trace.txt", "r");
     eof = $feof(data_file);
-    hitCount = 0; readOp = 0; writeOp = 0; 
+    hitCount = 0; readOp = 0; writeOp = 0; dummy=c.init_evict_count(0);
     while(!eof)
       begin
         scan_file = $fscanf(data_file, "%d %h\n", command,address); 
@@ -118,7 +118,7 @@ initial
                                 begin
                                   hitCount = hitCount + 1;
                                   //$display("Cache is write HIT");
-                                  dummy = c.cache_write(index,result[3:1]);
+                                  dummy = c.cache_write(index,tag,result[3:1]);
                                   if(c.set_mesi(index,tag,way,command,c.GetSnoopResult(address,`W)))
                                     dummy = c.LRU(index,result[3:1]);
                                 end 

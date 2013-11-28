@@ -18,11 +18,13 @@ module BusOperation();
   
  function busModify;
    input [31:0]address;
+   if(`busOperation)
    $display("M %h",address);
  endfunction
  
  function busInvalidate;
    input [31:0]address;
+   if(`busOperation)
    $display("I %h",address);
  endfunction
   

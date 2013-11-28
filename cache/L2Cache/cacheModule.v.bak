@@ -60,6 +60,7 @@ module cacheModule();
     reg [3:0]result,dummy;
     begin   
      result = mesi_function.mesi(m.cache[index][way][`mesi_start:`mesi_end],command,snoopResult);
+ //      result = f.mesi(01,01,00);
      m.cache[index][way][`mesi_start:`mesi_end] = result[3:2];
      case(result[1:0])
          `memoryRead:begin
@@ -183,7 +184,7 @@ module cacheModule();
   function init_evict_count;
     input dummy;
     begin
-      
+      evict_count = 0;
     end
   endfunction
   function show_evict_count;

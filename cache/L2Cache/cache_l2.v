@@ -119,7 +119,7 @@ initial
                                   hitCount = hitCount + 1;
                                   //$display("Cache is write HIT");
                                   dummy = c.cache_write(index,tag,result[3:1]);
-                                  if(c.set_mesi(index,tag,way,command,c.GetSnoopResult(address,`W)))
+                                  if(c.set_mesi(index,tag,result[3:1],command,c.GetSnoopResult(address,`W)))
                                     dummy = c.LRU(index,result[3:1]);
                                 end 
                           end
