@@ -16,6 +16,7 @@ module cacheModule();
   parameter count_bits=`counter_size;
   parameter offset_size=`offset_size;
   cache_mem m();
+  LRU l();
   BusOperation bus();
   mesi_function mesi_function();
   
@@ -34,12 +35,12 @@ module cacheModule();
     reg[`associativity:0] i;
     begin  
       check_cache=1'b0;
-      for(i=0;i<`associativity&&check_cache[0]==0;i=i+1)
+      for(i=0;i<`associativity&& check_cache[0]==0;i=i+1)
       begin
       //checking for valid state, if not in invalid state then read
      if(m.cache[index][i][`mesi_start:`mesi_end] != `Invalid)
        begin
-       if((m.cache[index][i][(`mesi_bits+`counter_size-1):0])==tag)
+       if((m.cache[index][i][`tag_size-1:0])==tag)
          begin
            check_cache={i,1'b1};        // if the cache finds match for tag it returns 'way' and a hit signal
          end
@@ -93,6 +94,24 @@ module cacheModule();
       invalidateLine = 1;
     end 
   endfunction
+  /*
+  
+  */
+  function invalidate_lru;
+    input [`index_size-1:0]index;
+    input [`counter_size-1:0]way;
+    integer i;
+    begin
+          ////////////////////////////setting LRU bit in sequence
+      for(i=0;i<`associativity;i=i+1)
+          begin
+            if(m.cache[index][i][`LRU_start:`LRU_end] > m.cache[index][way][`LRU_start:`LRU_end])
+              m.cache[index][i][`LRU_start:`LRU_end] = m.cache[index][i][`LRU_start:`LRU_end] -1;
+          end
+      m.cache[index][way][`LRU_start:`LRU_end] = {count_bits{1'bx}};
+      ////////////////////////////
+    end
+  endfunction
   
   /*
   LRU increments the counter of all the ways and makes the accessed way 0.
@@ -100,16 +119,45 @@ module cacheModule();
   function LRU;
     input [`index_size-1:0]index;
     input [`counter_size-1:0]way;
-    integer i;
-    begin
-        for(i=0;i<`associativity;i=i+1)
+    integer i;    
+    begin 
+      if(m.cache[index][way][`LRU_start:`LRU_end] === {count_bits{1'bx}})
         begin
-           if(m.cache[index][i][`LRU_start:`LRU_end]<7)
+          for(i=0;i<`associativity;i=i+1)
+            m.cache[index][i][`LRU_start:`LRU_end] = m.cache[index][i][`LRU_start:`LRU_end]+1;
+        end
+      else
+        begin
+          for(i=0;i<`associativity;i=i+1)
+          begin
+           if(m.cache[index][i][`LRU_start:`LRU_end] < m.cache[index][way][`LRU_start:`LRU_end])
               m.cache[index][i][`LRU_start:`LRU_end] = m.cache[index][i][`LRU_start:`LRU_end]+1;
-           end
+          end
+        end
       //`counter_size not allowed in replication. `counter_size includes $ln operation. Treats it as zero somehow
       m.cache[index][way][`LRU_start:`LRU_end]={count_bits{1'b0}};
       LRU = 1'b1;
+    end
+  endfunction
+   
+   function LRU1;
+    input [`index_size-1:0]index;
+    input [`counter_size-1:0]way;
+    integer i;
+    begin
+      if(l.LRU_mem[index][i] == way)
+        l.LRU_mem[index][i] = 1'bx;
+    else
+    begin  
+      for(i=`associativity-1;i>=1;i=i-1)
+      begin
+        if(l.LRU_mem[index][i-1] == way)
+          l.LRU_mem[index][i-1] = 1'bx; 
+          
+          l.LRU_mem[index][i] = l.LRU_mem[index][i-1];       
+      end
+    end
+      l.LRU_mem[index][0] = way;
     end
   endfunction
    
@@ -121,7 +169,7 @@ module cacheModule();
     input [`tag_size-1:0]tag;
     input [`counter_size-1:0]way;
     begin
-      m.cache[index][way][`tag_size+`counter_size-1:0]={{count_bits{1'b0}},tag};
+      m.cache[index][way][`tag_size-1:0]=tag;
       cache_write = 1;
     end
   endfunction
@@ -150,10 +198,10 @@ module cacheModule();
     integer i;
     reg[`counter_size-1:0] max_val;
       begin
-        max_val = 10'd0;
+        max_val = {count_bits{1'b0}};
         for(i=0;i<`associativity;i=i+1)
          begin
-          if(m.cache[index][i][`LRU_start:`LRU_end] > max_val)
+          if((m.cache[index][i][`LRU_start:`LRU_end] > max_val))
           begin
             max_val = m.cache[index][i][`LRU_start:`LRU_end];
             find_evict_way = i;
@@ -162,12 +210,32 @@ module cacheModule();
       end
   endfunction
   
+  function [`counter_size:0]find_evict_way1;
+    input [`index_size-1:0]index;
+    integer i;
+    reg found;
+      begin
+        found = 0;
+        for(i=(`associativity-1);i>0;i=i-1)
+         begin
+           if(l.LRU_mem[index][i] !== 3'bxxx || found == 0)
+             begin
+               find_evict_way1 = i;
+               found = 1;
+             end
+           else
+             find_evict_way1 = `associativity-1;
+         end
+       end
+     endfunction
+  
   /*
   this function directly evicts the data from the cache and makes the state as invalid
   */
   function evict_way;
     input [`index_size-1:0]index; 
     input [`counter_size-1:0]way;
+    integer i;
      begin
       if(m.cache[index][way][`mesi_start:`mesi_end] == `Modified)
         begin
@@ -175,6 +243,7 @@ module cacheModule();
           $display("Bus write error");
         end
         m.cache[index][way][`mesi_start:`mesi_end] = `Invalid;
+        m.cache[index][way][`LRU_start:`LRU_end] = {count_bits{1'bx}};
         evict_count = evict_count + 1;
         evict_way = 1'b1;       // return 1 if successfully evicted
      end 
@@ -216,15 +285,16 @@ module cacheModule();
   */  
   function print;
     input dummy;
-    integer i,j;
+    reg[`associativity-1:0] i;
+    integer j;
     begin
       $display("******************Contents of cache****************\n      Index         Way    mesi    tag   LRU");
       for(j=0;j<`set_count;j=j+1)
         begin
         for(i=0;i<`associativity;i=i+1)
           begin
-            if(m.cache[j][i][`mesi_start:`mesi_end] != `Invalid)
-              $display("%d %d    %b      %h   %h",j,i,m.cache[j][i][`mesi_start:`mesi_end],m.cache[j][i][`tag_size-1:0],m.cache[j][i][`LRU_start:`LRU_end]);
+            if(m.cache[j][i][`mesi_start:`mesi_end] != `Invalid)//l.LRU_mem[j][i]
+              $display("   %h         %h      %b     %h    %h",j,i,m.cache[j][i][`mesi_start:`mesi_end],m.cache[j][i][`tag_size-1:0],m.cache[j][i][`LRU_start:`LRU_end]);
           end
         end
       print = 1'b1;

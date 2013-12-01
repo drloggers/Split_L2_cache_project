@@ -4,6 +4,10 @@ Configuration File. Contains parameters, defination of essential variables
 *****************************************************************************************************************************************
 ****************************************************************************************************************************************/
 
+//File Name
+`define file_name "cc1.din"
+
+
 //Cache Parameters
 `define add_size 32
 `define associativity 8            //Associtivity (lines/set)
@@ -38,11 +42,11 @@ Configuration File. Contains parameters, defination of essential variables
 `define I 3
 
 //Debug Options 
-`define fileop 0
-`define debug 1
-`define L1_cache_comm 1
-`define snoopResult 1
-`define busOperation 1
+`define fileop 1
+`define debug 0
+`define L1_cache_comm 0
+`define snoopResult 0
+`define busOperation 0
 
 //Operation Trace File 
 `define L1_DataCacheRead 0
