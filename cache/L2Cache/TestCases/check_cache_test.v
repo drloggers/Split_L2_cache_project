@@ -21,6 +21,14 @@ begin
   dummy = c.LRU(index,way);
   dummy = c.set_mesi(index,tag,way,command,c.GetSnoopResult(4'h0000,`R));
   result = c.check_cache(index, tag);
-  $display("required result : %b :: functioned returned : %b",{3'b010,1'b1},result);
+ /*
+Returned values are LSB indicates hit or miss. Remaining bit specify the way in which hit was found
+*/
+  $display("required result : %b :: function returned : %b",{3'b010,1'b1},result);
+index = 1'd1;
+result = c.check_cache(index, tag);
+  $display("required result : %b :: function returned : %b",{3'b000,1'b0},result);
+
 end
 endmodule
+
