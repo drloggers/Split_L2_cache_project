@@ -5,7 +5,7 @@ Configuration File. Contains parameters, defination of essential variables
 ****************************************************************************************************************************************/
 
 //File Name
-`define file_name "cc1.din"
+`define file_name "lru_test1.txt"
 
 
 //Cache Parameters
@@ -46,7 +46,7 @@ Configuration File. Contains parameters, defination of essential variables
 `define debug 0
 `define L1_cache_comm 0
 `define snoopResult 0
-`define busOperation 0
+`define busOperation 1
 
 //Operation Trace File 
 `define L1_DataCacheRead 0

@@ -1,0 +1,26 @@
+/*
+testing check cache function
+*/
+`include "conf.v"
+module check_cache_test();
+cacheModule c();
+
+reg [`index_size-1:0]index;
+reg [`tag_size-1:0]tag;
+reg [`offset_size-1:0]offset;
+
+reg dummy;
+reg [3:0]result,way,command;
+initial 
+begin
+  index = 0;
+  tag = 12'h111;
+  way = 2;
+  command = 2'b01;
+  dummy = c.cache_write(index,tag,way);
+  dummy = c.LRU(index,way);
+  dummy = c.set_mesi(index,tag,way,command,c.GetSnoopResult(4'h0000,`R));
+  result = c.check_cache(index, tag);
+  $display("required result : %b :: functioned returned : %b",{3'b010,1'b1},result);
+end
+endmodule

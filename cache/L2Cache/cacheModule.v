@@ -239,7 +239,7 @@ module cacheModule();
      begin
       if(m.cache[index][way][`mesi_start:`mesi_end] == `Modified)
         begin
-        if(!bus.busWrite({m.cache[index][way][`tag_size-1:0],index}))
+        if(!bus.busWrite({m.cache[index][way][`tag_size-1:0],index,{offset_size{1'b0}}}))
           $display("Bus write error");
         end
         m.cache[index][way][`mesi_start:`mesi_end] = `Invalid;
