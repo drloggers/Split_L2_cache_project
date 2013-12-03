@@ -25,12 +25,11 @@ begin
   end
   result = c.empty_way(index);
   $display("required result : %b :: function returned : %b",3'b111,result);
-  dummy = c.cache_write(index,1'd7,3'b111);
+  dummy = c.cache_write(index,3'b111,3'b111);
   dummy = c.LRU(index,1'd7);
-  dummy = c.set_mesi(index,1'd7,1'd7,command,c.GetSnoopResult(4'h0000,`R));
+  dummy = c.set_mesi(index,3'b111,3'b111,command,c.GetSnoopResult(4'h0000,`R));
   result = c.empty_way(index);
   $display("required result : %b :: function returned : %b",3'bxxx,result);
-  dummy = c.print(0);
 end
 endmodule
 
