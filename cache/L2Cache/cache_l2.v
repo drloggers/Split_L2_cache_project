@@ -99,6 +99,8 @@ initial
                                       dummy = c.evict_way(index,way);
                                       if(`L1_cache_comm)
                                       $display("L1_cache I %h",address);
+                                      if(`busOperation)
+                                        $display(bus.busInvalidate(address));
                                     end
                                   //dummy = bus.busRead({tag,index,{offset_size{1'b0}}});
                                   dummy = c.cache_write(index,tag,way);

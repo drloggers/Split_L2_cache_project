@@ -87,15 +87,16 @@ module cacheModule();
     input [`index_size-1:0]index;
     input [`counter_size-1:0]way;
     begin
-      if(m.cache[index][way][`mesi_start:`mesi_end] == `Modified)
-        if(!bus.busWrite({m.cache[index][way][`tag_size-1:0],index,{offset_size{1'b0}}}))
-          $display("bus write operation failed");
-      m.cache[index][way][`mesi_start:`mesi_end] = `Invalid;
+      if(m.cache[index][way][`mesi_start:`mesi_end] == `Shared)
+        m.cache[index][way][`mesi_start:`mesi_end] = `Invalid;
+      else
+       $display("There is something fuzzy going on!!!!!!");
       invalidateLine = 1;
     end 
   endfunction
-  /*
   
+  /*
+  this function makes LRU bit according to number of active ways.
   */
   function invalidate_lru;
     input [`index_size-1:0]index;
