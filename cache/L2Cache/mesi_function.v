@@ -4,9 +4,9 @@ functions to implement MESI protocol
 *****************************************************************************************************************************************
 ****************************************************************************************************************************************/
 
-`include "conf.v"
-module mesi_function();
 
+module mesi_function();
+`include "conf.v"
 /*
 returns the next mesi state and the bus operation that is required to perform
 */
@@ -15,47 +15,65 @@ function[3:0] mesi;
   input [3:0]command;
   input [1:0]snoopResult;
   begin
+    mesi=4'bxxxx;
    case(presentState)
-    `Modified: begin
-        if(command == `SnoopReadRequest)
-          mesi = {`Shared, `memoryWrite};
-        else if(command == `SnoopRFO)
-          mesi = {`Invalid,`memoryWrite};
+    Modified: begin
+        if(command == SnoopReadRequest)
+          mesi = {Shared, memoryWrite};
+        else if(command == SnoopRFO)
+          mesi = {Invalid,memoryWrite};
         else 
-          mesi = {`Modified,`nothing};
+          begin
+          if(command == SnoopWriteRequest)
+          $display("modified line cannot be written back by other L2 cache.");
+          else
+          $display("cannot invalidate a line that is in modified state.");
         end
-    `Exclusive: begin
-        if(command == `SnoopReadRequest)
-          mesi = {`Shared,`nothing};
-        else if(command == `SnoopRFO)
-          mesi = {`Invalid,`nothing};
-        else if(command == `L1_DataCacheWrite)
-          mesi = {`Modified,`nothing};
+      end
+    Exclusive: begin
+        if(command == SnoopReadRequest)
+          mesi = {Shared,nothing};
+        else if(command == SnoopRFO)
+          mesi = {Invalid,nothing};
+        else if(command == L1_DataCacheWrite)
+          mesi = {Modified,nothing};
         else 
-          mesi = {`Exclusive,`nothing};
+          begin
+          if(command == SnoopWriteRequest)
+          $display("exclusive line cannot be written back by other L2 cache.");
+          else
+          $display("cannot invalidate a line that is in exclusive state.");
         end
-    `Shared: begin
-        if(command == `SnoopReadRequest)
-          mesi = {`Shared,`nothing};
-        else if(command == `SnoopInvalidateRequest || command == `SnoopRFO)
-          mesi = {`Invalid,`nothing};
-        else if(command == `L1_DataCacheWrite)
-          mesi = {`Modified,`RFO};
+      end
+    Shared: begin
+        if(command == SnoopReadRequest)
+          mesi = {Shared,nothing};
+        else if(command == SnoopInvalidateRequest || command == SnoopRFO)
+          mesi = {Invalid,nothing};
+        else if(command == L1_DataCacheWrite)
+          mesi = {Modified,invalidate};
         else
-          mesi = {`Shared,`nothing};
+          mesi = {Shared,nothing};
         end
-    `Invalid: begin
-        if((command == `L1_DataCacheRead || command == `L1_InstructionCacheRead) && snoopResult == `HIT)
-          mesi = {`Shared,`memoryRead};
-        else if((command == `L1_DataCacheRead || command == `L1_InstructionCacheRead) && snoopResult == `NoHIT)
-          mesi = {`Exclusive,`memoryRead};
-        else if(command == `L1_DataCacheWrite)
-          mesi = {`Modified,`RFO};
+    Invalid: begin
+        if((command == L1_DataCacheRead || command == L1_InstructionCacheRead) && (snoopResult == HIT || snoopResult == HITM))
+          mesi = {Shared,memoryRead};
+        else if((command == L1_DataCacheRead || command == L1_InstructionCacheRead) && snoopResult == NoHIT)
+          mesi = {Exclusive,memoryRead};
+        else if(command == L1_DataCacheWrite)
+          mesi = {Modified,RFO};
         else
-          mesi = {`Invalid,`nothing};
+          mesi = {Invalid,nothing};
         end
     default:begin
-          mesi = {`Exclusive,`memoryRead};
+          if((command == L1_DataCacheRead || command == L1_InstructionCacheRead) && (snoopResult == HIT || snoopResult == HITM))
+          mesi = {Shared,memoryRead};
+        else if((command == L1_DataCacheRead || command == L1_InstructionCacheRead) && snoopResult == NoHIT)
+          mesi = {Exclusive,memoryRead};
+        else if(command == L1_DataCacheWrite)
+          mesi = {Modified,RFO};
+        else
+          mesi = {Invalid,nothing};
         end
    endcase
   end
