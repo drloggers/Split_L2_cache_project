@@ -1,13 +1,14 @@
 /*
 testing check cache function
 */
-`include "conf.v"
+
 module check_cache_test();
+  `include "conf.v"
 cacheModule c();
 
-reg [`index_size-1:0]index;
-reg [`tag_size-1:0]tag;
-reg [`offset_size-1:0]offset;
+reg [index_size-1:0]index;
+reg [tag_size-1:0]tag;
+reg [offset_size-1:0]offset;
 
 reg dummy;
 reg [3:0]result,way,command;
@@ -18,8 +19,8 @@ begin
   way = 2;
   command = 2'b01;
   dummy = c.cache_write(index,tag,way);
-  dummy = c.LRU(index,way);
-  dummy = c.set_mesi(index,tag,way,command,c.GetSnoopResult(4'h0000,`R));
+  dummy = c.update_LRU(index,way);
+  dummy = c.update_mesi(index,tag,way,command,c.GetSnoopResult(4'h0000,R));
   result = c.check_cache(index, tag);
  /*
 Returned values are LSB indicates hit or miss. Remaining bit specify the way in which hit was found
@@ -31,4 +32,3 @@ result = c.check_cache(index, tag);
 
 end
 endmodule
-
