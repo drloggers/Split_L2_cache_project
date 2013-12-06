@@ -10,7 +10,7 @@ contains and uses LRU - MESI modules.
 
 module cacheModule();
   
-  `include "conf.v"
+  `include "config.v"
   
   
   /*
@@ -81,10 +81,31 @@ module cacheModule();
     input [1:0]snoopResult;
     reg [3:0]result,dummy;
     reg [add_size-1:0] address;
+    reg [1:0]PresentState,NextState,BusOp;
     begin   
      address = {tag,index,{offset_size{1'b0}}};
-     result = mesi_function.mesi(m.cache[index][way][mesi_start:mesi_end],command,snoopResult);
-     if(result[3:2] == Invalid)
+     PresentState = m.cache[index][way][mesi_start:mesi_end];
+     {NextState,BusOp} = mesi_function.mesi(PresentState,command,snoopResult);
+     
+
+     if(NextState == PresentState)
+       begin
+         case(PresentState)
+           Exclusive: 
+           begin
+             if((snoopResult==HIT)||(snoopResult==HITM))
+               $display("Unexpected HIT or HITM in Exclusive State. Initial response was NoHIT");
+           end
+           
+           Shared:
+           begin
+             if(snoopResult==NoHIT)
+               $display("Unexpected NoHIT in Shared State. Initial response was HIT or HITM");
+           end
+         endcase
+       end
+   
+     if(NextState == Invalid)
        begin
          dummy = c.invalidate_lru(index,way);
         if(L1_cache_comm)
@@ -93,12 +114,12 @@ module cacheModule();
             $display("L1_cache I %h",(address+add_size));
           end
        end
-       if(result[3:2] === 2'bxx)
+       if(NextState === 2'bxx)
          $display("Cannot determine the next state!");
        else
          begin
-        m.cache[index][way][mesi_start:mesi_end] = result[3:2];
-        case(result[1:0])
+        m.cache[index][way][mesi_start:mesi_end] = NextState;
+        case(BusOp)
          invalidate:begin
                       if(!bus.busInvalidate(address))
                       $display("bus invalidate failed!");
@@ -129,7 +150,7 @@ module cacheModule();
     input[31:0] Address;
     input[7:0] Operation;  
       begin
-        case(Address)
+        case(Address[1:0])
           2'b00: GetSnoopResult = NoHIT;
           2'b01: GetSnoopResult = NoHIT;
           2'b10: GetSnoopResult = HIT;

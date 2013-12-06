@@ -6,7 +6,7 @@ functions to implement MESI protocol
 
 
 module mesi_function();
-`include "conf.v"
+`include "config.v"
 /*
 returns the next mesi state and the bus operation that is required to perform
 */
@@ -15,19 +15,24 @@ function[3:0] mesi;
   input [3:0]command;
   input [1:0]snoopResult;
   begin
-    mesi=4'bxxxx;
+    mesi={presentState,nothing};
    case(presentState)
     Modified: begin
         if(command == SnoopReadRequest)
           mesi = {Shared, memoryWrite};
         else if(command == SnoopRFO)
           mesi = {Invalid,memoryWrite};
-        else 
+      else
           begin
           if(command == SnoopWriteRequest)
           $display("modified line cannot be written back by other L2 cache.");
-          else
+          else if(command == SnoopInvalidateRequest)
+            begin
           $display("cannot invalidate a line that is in modified state.");
+        end
+          
+        else
+        mesi = {Modified, nothing};
         end
       end
     Exclusive: begin
@@ -41,8 +46,10 @@ function[3:0] mesi;
           begin
           if(command == SnoopWriteRequest)
           $display("exclusive line cannot be written back by other L2 cache.");
-          else
+          else if(command == SnoopInvalidateRequest)
           $display("cannot invalidate a line that is in exclusive state.");
+          else
+        mesi = {Exclusive, nothing};
         end
       end
     Shared: begin
@@ -53,7 +60,12 @@ function[3:0] mesi;
         else if(command == L1_DataCacheWrite)
           mesi = {Modified,invalidate};
         else
+          begin
+          
+          if(command == SnoopWriteRequest)
+          $display("Shared Line cannot be written back by other L2 cache.");
           mesi = {Shared,nothing};
+        end
         end
     Invalid: begin
         if((command == L1_DataCacheRead || command == L1_InstructionCacheRead) && (snoopResult == HIT || snoopResult == HITM))

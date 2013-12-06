@@ -5,7 +5,7 @@
 
 module cache_mem();
   
-  `include "conf.v"
+  `include "config.v"
   
   reg [(mesi_bits+counter_size+tag_size-1):0]cache[set_count-1:0][associativity-1:0];
   
