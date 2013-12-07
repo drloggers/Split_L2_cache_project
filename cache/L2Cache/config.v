@@ -6,6 +6,7 @@ Configuration File. Contains parameters, defination of essential variables
 
 //Display Options 
 parameter transout = 0,                 //Set to redirect output to a file 
+          fileop = 0,
           debug = 0,                  //Displays additional debug info 
           L1_cache_comm = 1,          //Set to Enable L1 Communication Display
           snoopResult = 1,            //Set to Enable Snoop Result Display

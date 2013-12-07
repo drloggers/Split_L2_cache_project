@@ -23,21 +23,21 @@ module BusOperation();
   function busWrite;
     input [add_size-1:0]address;
     if(busOperation)
-    $display("W %h",address);
+    dummy=f.bus_display("W",address);
   endfunction
   
   //Bus Modify Function. Prints out M Address
  function busModify;
    input [add_size-1:0]address;
    if(busOperation)
-   $display("M %h",address);
+   dummy=f.bus_display("M",address);
  endfunction
  
  //Bus Invalidate Function. Prints out I Address
  function busInvalidate;
    input [add_size-1:0]address;
    if(busOperation)
-   $display("I %h",address);
+   dummy=f.bus_display("I",address);
  endfunction
   
 endmodule
