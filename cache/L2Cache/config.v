@@ -4,10 +4,13 @@ Configuration File. Contains parameters, defination of essential variables
 *****************************************************************************************************************************************
 ****************************************************************************************************************************************/
 
-//File Name
-//`define file_name "lru_test1.txt"
-
-
+//Display Options 
+parameter transout = 0,                 //Set to redirect output to a file 
+          debug = 0,                  //Displays additional debug info 
+          L1_cache_comm = 1,          //Set to Enable L1 Communication Display
+          snoopResult = 1,            //Set to Enable Snoop Result Display
+          busOperation = 1;           //Set to Enable Bus Operations Display
+          
 //Cache Size Parameters
 parameter add_size = 32,                //Address Size
           associativity = 8,            //Associtivity (lines/set)
@@ -42,14 +45,7 @@ parameter R = 0,
           M = 2,
           I = 3;
 
-//Debug Options 
-parameter fileop = 0,
-          debug = 0,
-          L1_cache_comm = 1,
-          snoopResult = 1,
-          busOperation = 1;
-
-//Operation Trace File 
+//Commands 
 parameter L1_DataCacheRead = 0,
           L1_DataCacheWrite = 1,
           L1_InstructionCacheRead = 2,
@@ -61,7 +57,6 @@ parameter L1_DataCacheRead = 0,
           PrintCache = 9;
 
 
-// Include facility of code sanity- check lenghts of address and index bits are okay 
 
 //Constants to access cache bits
 parameter mesi_start = mesi_bits+counter_size+tag_size-1,

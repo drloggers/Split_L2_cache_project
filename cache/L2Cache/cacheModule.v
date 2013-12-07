@@ -3,7 +3,7 @@
 This is top cache  module  with  basic  cache  memory  module.
 It also contains various functions to access cache, modify the 
 contains and uses LRU - MESI modules. 
-------------------------------------------------------------------ECE 585 project-------------------------------------------------------
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ECE 585 project>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>----------------------
 *****************************************************************************************************************************************
 ****************************************************************************************************************************************/
 
@@ -21,6 +21,7 @@ module cacheModule();
  
   BusOperation bus();
   mesi_function mesi_function();
+  file_write f();
   
   integer evict_count,busRead,busWrite,busModify,busInvalid;
   
@@ -88,7 +89,7 @@ module cacheModule();
      {NextState,BusOp} = mesi_function.mesi(PresentState,command,snoopResult);
      
 
-     if(NextState == PresentState)
+    /* if(NextState == PresentState)
        begin
          case(PresentState)
            Exclusive: 
@@ -103,19 +104,16 @@ module cacheModule();
                $display("Unexpected NoHIT in Shared State. Initial response was HIT or HITM");
            end
          endcase
-       end
+       end*/
    
      if(NextState == Invalid)
        begin
          dummy = c.invalidate_lru(index,way);
-        if(L1_cache_comm)
-            begin
-            $display("L1_cache I %h",address);
-            $display("L1_cache I %h",(address+add_size));
-          end
+              dummy= f.L1_display("I",address);
+              dummy= f.L1_display("I",address+add_size);
        end
        if(NextState === 2'bxx)
-         $display("Cannot determine the next state!");
+         dummy = f.string_display("Cannot determine the next state!");
        else
          begin
         m.cache[index][way][mesi_start:mesi_end] = NextState;
@@ -324,7 +322,7 @@ Snoop Functions ends
             m.cache[j][i][mesi_start:mesi_end] = Invalid;
           end
         end
-        $display("---------------cache is cleared------------------");
+        dummy = f.string_display(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Cache Has Been Cleared<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     end
   endfunction
     
@@ -336,15 +334,17 @@ Snoop Functions ends
     reg[associativity-1:0] i;
     integer j;
     begin
-      $display("******************Contents of cache****************\n      Index         Way    mesi    tag   LRU");
+      dummy = f.string_display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Contents of cache ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n  Index         Way    MESI     Tag   LRU");
       for(j=0;j<set_count;j=j+1)
         begin
         for(i=0;i<associativity;i=i+1)
           begin
             if(m.cache[j][i][mesi_start:mesi_end] != Invalid)//l.LRU_mem[j][i]
-              $display("   %h         %h      %b     %h    %h",j,i,m.cache[j][i][mesi_start:mesi_end],m.cache[j][i][tag_size-1:0],m.cache[j][i][LRU_start:LRU_end]);
+              dummy = f.cache_display(j,i,m.cache[j][i][mesi_start:mesi_end],m.cache[j][i][tag_size-1:0],m.cache[j][i][LRU_start:LRU_end]);
           end
         end
+        dummy = f.string_display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+      
       print = 1'b1;
     end
   endfunction   

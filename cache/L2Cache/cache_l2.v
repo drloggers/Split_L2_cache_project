@@ -14,13 +14,14 @@ module cache_l2();
   
 //Instantiation of Cache Memory. Further referenced as m.cache[set][column]
 cacheModule c();  //change this variable name to L2_cache_module
+file_write f();
 
 
   
 //File Handlers 
-integer data_file    ; // file handler
+integer data_file, output_file    ; // file handler
 integer scan_file,eof    ; // file handler
-reg [1000:0] testname;
+reg [256:0] testname;
 reg [3:0] command;
 reg [31:0]address;
 
@@ -45,20 +46,22 @@ initial
     
     if ($value$plusargs("TRACE=%s", testname)) 
 begin
-    $display("Running Trace File %0s.", testname);
+    dummy = f.string_display(testname);
 end
 else 
   begin
-  $display("Error: Test Not Specified in Command Line. The syntax is: vsim -novopt cache_l2 +TRACE=<Trace To Be Run>");
-  $display("Simulation Halted. Please spcecify a trace file to run.");
+  dummy = f.string_display("Error: Test Not Specified in Command Line. The syntax is: vsim -novopt cache_l2 +TRACE=<Trace To Be Run>");
+  dummy = f.string_display("Simulation Halted. Please spcecify a trace file to run.");
   $stop;
 end
 
 
 
 
+
 //$finish;
     data_file = $fopen(testname, "r");
+    output_file = $fopen({testname,".out"},"w");
    eof = $feof(data_file);
     hitCount = 0; readOp = 0; writeOp = 0; dummy=c.init_evict_count(0);
     while(!eof)
@@ -70,7 +73,7 @@ else
       
       if( address==={add_size{1'bx}} && ((command!=ClearCache)||(command!=PrintCache)))
         begin
-          $display("Error in Trace File. Missing address. Please provide correct trace file.");
+          dummy = f.string_display("Error in Trace File. Missing address. Please provide correct trace file.");
           $stop;
         end
         
@@ -100,6 +103,7 @@ else
                                     way = c.find_evict_way(index);
                                     dummy = c.evict_way(index,way);
                                   end
+                                 dummy=f.L1_display("M",address); 
                                 dummy = c.cache_write(index,tag,way);
                                 if(c.update_mesi(index,tag,way,command,SnoopResult))
                                   dummy = c.update_LRU(index,way);
@@ -109,6 +113,7 @@ else
                             else        //If hit increment hit count
                               begin
                                 hitCount = hitCount + 1;
+                                dummy=f.L1_display("H",address); 
                                // $display("cache HIT");
                                dummy=c.update_mesi(index,tag,way,command,SnoopResult);                           
                                 dummy = c.update_LRU(index,result[3:1]);
@@ -131,6 +136,7 @@ else
                                   
                                     end
                                   //dummy = bus.busRead({tag,index,{offset_size{1'b0}}});
+                                  dummy=f.L1_display("M",address); 
                                   dummy = c.cache_write(index,tag,way);
                                   if(c.update_mesi(index,tag,way,command,c.GetSnoopResult(address,W)))
                                   dummy = c.update_LRU(index,way);
@@ -142,6 +148,7 @@ else
                               else
                                 begin
                                   hitCount = hitCount + 1;
+                                  dummy=f.L1_display("H",address); 
                                //   $display("Cache is write HIT");
                                   dummy = c.cache_write(index,tag,result[3:1]);
                                   if(c.update_mesi(index,tag,result[3:1],command,c.GetSnoopResult(address,W)))
@@ -163,8 +170,8 @@ else
                                           begin
                                           way = c.find_evict_way(index);
                                           dummy = c.evict_way(index,way);
-                                          
                                           end
+                                          dummy=f.L1_display("M",address); 
                                         dummy = c.cache_write(index,tag,way);
                                         if(c.update_mesi(index,tag,way,command,c.GetSnoopResult(address,R)))
                                           dummy = c.update_LRU(index,way);
@@ -174,6 +181,7 @@ else
                                     else
                                       begin
                                         hitCount = hitCount + 1;
+                                        dummy=f.L1_display("H",address); 
                                    //     $display("cache HIT");
                                    dummy=c.update_mesi(index,tag,way,command,SnoopResult); 
                                         dummy = c.update_LRU(index,result[3:1]);
@@ -200,18 +208,15 @@ else
 
                             case(c.PutSnoopResult(address,R))
                                 HIT:begin
-                                    if(snoopResult)
-                                      $display("SR HIT");
+                                    dummy=f.snoop_display("SR HIT");
                                      end
                                 
                                 NoHIT:begin
-                                      if(snoopResult)
-                                      $display("SR no HIT");
+                                     dummy=f.snoop_display("SR NoHIT");
                                      end
                                 
                                 HITM:begin
-                                      if(snoopResult)
-                                      $display("SR HITM");
+                                     dummy=f.snoop_display("SR HITM");
                                      end
                               endcase
                             if(result[0])
@@ -223,22 +228,7 @@ else
                             //Call Check Cache
                             result = c.check_cache(index,tag);
                             //Call Put Snoop Function 
-                            case(c.PutSnoopResult(address,W))
-                                HIT:begin
-                                      if(snoopResult)
-                                      $display("SR HIT");
-                                     end
-                                
-                                NoHIT:begin
-                                      if(snoopResult)
-                                      $display("SR no HIT");
-                                     end
-                                
-                                HITM:begin
-                                      if(snoopResult)
-                                      $display("SR HITM");
-                                     end
-                              endcase
+                            
                             if(result[0])
                                //Call MESI
                               //$display("there is something fuzzy going on during write!!!!");
@@ -251,18 +241,15 @@ dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
                             //Call Put Snoop Function 
                             case(c.PutSnoopResult(address,M))
                                 HIT:begin
-                                      if(snoopResult)
-                                      $display("SR HIT");
+                                    dummy=f.snoop_display("SR HIT");
                                      end
                                 
                                 NoHIT:begin
-                                      if(snoopResult)
-                                      $display("SR no HIT");
+                                     dummy=f.snoop_display("SR NoHIT");
                                      end
                                 
                                 HITM:begin
-                                      if(snoopResult)
-                                      $display("SR HITM");
+                                     dummy=f.snoop_display("SR HITM");
                                      end
                               endcase
                             if(result[0])
@@ -272,7 +259,8 @@ dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
                
         ClearCache: begin
                       //Clear all lines
-                      $display("hit=%d,read=%d,write=%d,hit ratio=%f %s",hitCount,readOp,writeOp,hitRatio,"%");
+                 
+                      dummy=f.stats_display(hitCount,readOp,writeOp);
                       hitCount = 0; readOp = 0; writeOp = 0;
                       dummy = c.clearCache(0);
                end
@@ -283,7 +271,7 @@ dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
                 end 
                 
         default:begin
-                $display("\n This Command-->%d is not supported by the current version. Please contact us", command);
+                dummy = f.string_display("This Command is not supported by the current version. Please contact us");
                 end
       endcase
       
@@ -292,8 +280,10 @@ dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
   end
   
  $fclose(data_file);
-  hitRatio = hitCount*100 /(readOp+writeOp);
-  $display("hit = %d, read = %d, write = %d, hit ratio= %f %s",hitCount,readOp,writeOp,hitRatio,"%");
+  
+   dummy=f.stats_display(hitCount,readOp,writeOp);
+  
+  dummy = f.string_display("xxxxxxxxxxxxxxx END OF TRACE FILE xxxxxxxxxxxxxxx \n\n\n\n");
   if(debug)
     $display("evict count = %d",c.show_evict_count(0));
 end
