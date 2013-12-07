@@ -68,6 +68,7 @@ module cacheModule();
           end
       m.cache[index][way][LRU_start:LRU_end] = {counter_size{1'bx}};
       ////////////////////////////
+      invalidate_lru=1;
     end
   endfunction
     
@@ -295,18 +296,6 @@ Snoop Functions ends
      end 
   endfunction 
   
-  function init_evict_count;
-    input dummy;
-    begin
-      evict_count = 0;
-    end
-  endfunction
-  function show_evict_count;
-    input dummy;
-    begin
-      show_evict_count = evict_count;
-    end
-  endfunction
   
   /*
   Clears the cache by making all lines invalid
@@ -323,6 +312,7 @@ Snoop Functions ends
           end
         end
         dummy = f.string_display(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Cache Has Been Cleared<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        clearCache=1;
     end
   endfunction
     

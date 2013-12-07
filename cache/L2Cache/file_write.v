@@ -24,6 +24,7 @@ function bus_display;
       $fwrite(log_file,"\n%0s %h",operation,address);
       $fclose(log_file);
     end
+    bus_display=1;
   end
 endfunction
 
@@ -41,6 +42,7 @@ function L1_display;
       $fwrite(log_file,"\nL1 %0s %h",operation,address);
       $fclose(log_file);
     end
+    L1_display=1;
   end
 endfunction
 
@@ -57,19 +59,28 @@ function snoop_display;
       $fwrite(log_file,"\n%0s",snoop_result);
       $fclose(log_file);
     end
+    snoop_display=1;
   end
 endfunction
  
 function stats_display;
   input [63:0]hitCount,readOp,writeOp;
-  real hitRatio;
-   begin
-     hitRatio = hitCount*100 /(readOp+writeOp);
-    if(L1_cache_comm)
-      if(transout)
-        begin
+  real hitRatio,temp_hitCount,temp_readOp,temp_writeOp;
+  integer missCount;
+  
+    begin
+     temp_readOp=readOp;
+  temp_writeOp=writeOp;
+  temp_hitCount=hitCount;
+  missCount=readOp+writeOp-hitCount;
+  
+  if(temp_readOp+temp_writeOp!=0)
+     hitRatio = temp_hitCount*100 /(temp_readOp+temp_writeOp);
+   else
+     hitRatio=0;
+      begin
             $display("---------Cache Statistics--------");
-            $display("Hits= %0d\nCPU Reads= %0d\nCPU Writes= %0d\nHit Ratio= %0f %0s",hitCount,readOp,writeOp,hitRatio,"%");
+           $display("CPU Reads= %0d\nCPU Writes= %0d\nHits= %0d\nMisses=%0d\nHit Ratio= %0f %0s",readOp,writeOp,hitCount,missCount,hitRatio,"%");
             $display("---------------------------------");
        end
        
@@ -78,10 +89,11 @@ function stats_display;
          begin
        log_file=$fopen("output.log","a");
      $fwrite(log_file,"\n%0s","---------Cache Statistics--------");
-     $fwrite(log_file,"\nHits= %0d\nCPU Reads= %0d\nCPU Writes= %0d\nHit Ratio= %0f %0s",hitCount,readOp,writeOp,hitRatio,"%");
+     $fwrite(log_file,"\nCPU Reads= %0d\nCPU Writes= %0d\nHits= %0d\nMisses=%0d\nHit Ratio= %0f %0s",readOp,writeOp,hitCount,missCount,hitRatio,"%");
      $fwrite(log_file,"\n%0s","---------------------------------");
       $fclose(log_file);
     end
+    stats_display=1;
   end
   
 endfunction
@@ -98,13 +110,14 @@ function string_display;
       $fwrite(log_file,"\n%0s",string);
       $fclose(log_file);
     end
+    string_display=1;
   end
 endfunction
 
 function cache_display;
     input [index_size-1:0]index;
     input [associativity-1:0]way;
-    input [2:0]mesi;
+    input [1:0]mesi;
     input [tag_size-1:0]tag;
     input [counter_size-1:0]Lru;
     begin
@@ -117,6 +130,7 @@ function cache_display;
       $fwrite(log_file,"\n   %h         %h      %b     %h    %h",index,way,mesi,tag,Lru);
       $fclose(log_file);
     end
+    cache_display=1;
   end
 endfunction
 

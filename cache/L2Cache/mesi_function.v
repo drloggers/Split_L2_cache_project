@@ -7,6 +7,8 @@ functions to implement MESI protocol
 
 module mesi_function();
 `include "config.v"
+file_write f();
+reg dummy;
 /*
 returns the next mesi state and the bus operation that is required to perform
 */
@@ -25,10 +27,10 @@ function[3:0] mesi;
       else
           begin
           if(command == SnoopWriteRequest)
-          $display("modified line cannot be written back by other L2 cache.");
+          dummy=f.string_display("modified line cannot be written back by other L2 cache.");
           else if(command == SnoopInvalidateRequest)
             begin
-          $display("cannot invalidate a line that is in modified state.");
+          dummy=f.string_display("cannot invalidate a line that is in modified state.");
         end
           
         else
@@ -45,9 +47,9 @@ function[3:0] mesi;
         else 
           begin
           if(command == SnoopWriteRequest)
-          $display("exclusive line cannot be written back by other L2 cache.");
+          dummy=f.string_display("exclusive line cannot be written back by other L2 cache.");
           else if(command == SnoopInvalidateRequest)
-          $display("cannot invalidate a line that is in exclusive state.");
+          dummy=f.string_display("cannot invalidate a line that is in exclusive state.");
           else
         mesi = {Exclusive, nothing};
         end
@@ -63,7 +65,7 @@ function[3:0] mesi;
           begin
           
           if(command == SnoopWriteRequest)
-          $display("Shared Line cannot be written back by other L2 cache.");
+          dummy=f.string_display("Shared Line cannot be written back by other L2 cache.");
           mesi = {Shared,nothing};
         end
         end

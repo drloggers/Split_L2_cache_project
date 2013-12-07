@@ -63,7 +63,7 @@ else
     data_file = $fopen(testname, "r");
     output_file = $fopen({testname,".out"},"w");
    eof = $feof(data_file);
-    hitCount = 0; readOp = 0; writeOp = 0; dummy=c.init_evict_count(0);
+    hitCount = 0; readOp = 0; writeOp = 0; 
     while(!eof)
       begin
         scan_file = $fscanf(data_file, "%d", command);
@@ -284,8 +284,7 @@ dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
    dummy=f.stats_display(hitCount,readOp,writeOp);
   
   dummy = f.string_display("xxxxxxxxxxxxxxx END OF TRACE FILE xxxxxxxxxxxxxxx \n\n\n\n");
-  if(debug)
-    $display("evict count = %d",c.show_evict_count(0));
+  
 end
   
 endmodule 
