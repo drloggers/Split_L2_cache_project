@@ -66,12 +66,12 @@ else
     hitCount = 0; readOp = 0; writeOp = 0; 
     while(!eof)
       begin
-        scan_file = $fscanf(data_file, "%d", command);
+        scan_file = $fscanf(data_file, "%b", command);
         if(~(command== 4'b0111 || command ==4'b1000 || command ==4'b1001) )
         scan_file = $fscanf(data_file,"%h\n", address); 
         eof = $feof(data_file);
-      
-      if( address==={add_size{1'bx}} && ((command!=ClearCache)||(command!=PrintCache)))
+      $display("command : %d",command);
+      if( address==={add_size{1'bx}} && ((command!=ClearCache)||(command!=PrintCache)||(command === 1'bx)))
         begin
           dummy = f.string_display("Error in Trace File. Missing address. Please provide correct trace file.");
           $stop;

@@ -5,12 +5,12 @@ Configuration File. Contains parameters, defination of essential variables
 ****************************************************************************************************************************************/
 
 //Display Options 
-parameter transout = 0,                 //Set to redirect output to a file 
-          fileop = 1,
-          debug = 0,                  //Displays additional debug info 
+parameter transout = 0,               //Set to Disable output to Transcript 
+          fileop = 1,                 //Set to Enable file oputput
           L1_cache_comm = 1,          //Set to Enable L1 Communication Display
           snoopResult = 1,            //Set to Enable Snoop Result Display
-          busOperation = 1;           //Set to Enable Bus Operations Display
+          busOperation = 1,           //Set to Enable Bus Operations Display
+          debug = 0;                  //Displays additional debug info 
           
 //Cache Size Parameters
 parameter add_size = 32,                //Address Size

@@ -14,11 +14,10 @@ function bus_display;
   input [7:0]operation;
   input [add_size-1:0]address;
   begin
-    if(busOperation)
-      if(transout)
-        $display("%0s %h",operation,address);
+    if(busOperation & transout)
+      $display("%0s %h",operation,address);
         
-      if(fileop)
+      if(fileop & busOperation)
       begin 
       log_file=$fopen("output.log","a");
       $fwrite(log_file,"\n%0s %h",operation,address);
@@ -32,11 +31,10 @@ function L1_display;
   input [7:0]operation;
   input [add_size-1:0]address;
   begin
-    if(L1_cache_comm)
-      if(transout)
+        if(transout & L1_cache_comm)
          $display("L1 %0s %h",operation,address);
          
-      if(fileop)   
+      if(fileop & L1_cache_comm)   
         begin
       log_file=$fopen("output.log","a");
       $fwrite(log_file,"\nL1 %0s %h",operation,address);
@@ -49,11 +47,10 @@ endfunction
 function snoop_display;
     input [63:0]snoop_result;
     begin
-    if(snoopResult)
-      if(transout)
+      if(transout & snoopResult)
          $display("%0s",snoop_result);
          
-        if(fileop)
+        if(fileop & snoopResult)
         begin 
        log_file=$fopen("output.log","a");
       $fwrite(log_file,"\n%0s",snoop_result);
