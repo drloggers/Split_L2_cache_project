@@ -28,7 +28,7 @@ begin
   result = c.find_evict_way(index);
   dummy  = c.evict_way(index,result);
   dummy = c.print(0);
-  $display("way %b evicted",result);
+  $display("required evicted way : 000; result evicted way : %b",result);
 end
 endmodule
 
