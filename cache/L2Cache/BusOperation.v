@@ -1,4 +1,5 @@
 /*
+BusOperation.v
 Bus Operation Functions
 This file includes definitions of all Bus Operation Functions
 */
@@ -6,7 +7,6 @@ This file includes definitions of all Bus Operation Functions
 module BusOperation();
   
   file_write f();
-  
   `include "config.v"
   integer output_file;
   reg dummy;
@@ -16,11 +16,10 @@ module BusOperation();
     input [add_size-1:0]address;
     begin
     if(busOperation)
-         dummy=f.bus_display("R",address);
+    dummy=f.bus_display("R",address);
          
     busRead=1;
   end      
-    
   endfunction
  
   //Bus Write Function. Prints out W Address 
@@ -40,9 +39,9 @@ module BusOperation();
     begin
    if(busOperation)
    dummy=f.bus_display("M",address);
-   
-   busModify=1;
- end
+ 
+busModify=1;
+ end
  endfunction
  
  //Bus Invalidate Function. Prints out I Address
@@ -55,5 +54,4 @@ module BusOperation();
    busInvalidate=1;
  end
  endfunction
-  
-endmodule
+ endmodule

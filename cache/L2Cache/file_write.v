@@ -1,15 +1,16 @@
-// File Write Module
-
-
-
+/*
+file_write.v
+File Write Module- Output and File Write Control Block
+This block contains functions to selectively display outputs 
+on the transcript and/or to redirect them to output.log file
+*/
 
 module file_write();
   
   `include"config.v"
-  
-  integer log_file;
+   integer log_file;
    
-   
+//Displays Bus Operations    
 function bus_display;
   input [7:0]operation;
   input [add_size-1:0]address;
@@ -27,6 +28,7 @@ function bus_display;
   end
 endfunction
 
+//Displays communication with L1 Cache
 function L1_display;
   input [7:0]operation;
   input [add_size-1:0]address;
@@ -44,6 +46,7 @@ function L1_display;
   end
 endfunction
 
+//Displays snoop results on the bus
 function snoop_display;
     input [63:0]snoop_result;
     begin
@@ -59,7 +62,8 @@ function snoop_display;
     snoop_display=1;
   end
 endfunction
- 
+
+//Displays statistics 
 function stats_display;
   input [63:0]hitCount,readOp,writeOp;
   real hitRatio,temp_hitCount,temp_readOp,temp_writeOp;
@@ -81,8 +85,7 @@ function stats_display;
             $display("---------------------------------");
        end
        
-       
-       if(fileop)
+    if(fileop)
          begin
        log_file=$fopen("output.log","a");
      $fwrite(log_file,"\n%0s","---------Cache Statistics--------");
@@ -95,6 +98,7 @@ function stats_display;
   
 endfunction
 
+//Displays message string
 function string_display;
     input [2047:0]string;
     begin
@@ -111,6 +115,7 @@ function string_display;
   end
 endfunction
 
+//Displays cache contents
 function cache_display;
     input [index_size-1:0]index;
     input [associativity-1:0]way;

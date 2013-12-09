@@ -1,7 +1,8 @@
-// Cache Array 
-// The Cache Array holds Tag Overhead (MESI Bits + LRU Counter Bits + Tag)
-
-
+/*
+cache_mem.v
+Cache Array 
+The Cache Array holds Tag Overhead (MESI Bits + LRU Counter Bits + Tag)
+*/
 
 module cache_mem();
   

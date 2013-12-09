@@ -1,38 +1,28 @@
-/****************************************************************************************************************************************
-*****************************************************************************************************************************************
+/*********************************************************************
+cacheModule.v
 This is top cache  module  with  basic  cache  memory  module.
 It also contains various functions to access cache, modify the 
 contains and uses LRU - MESI modules. 
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ECE 585 project>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>----------------------
-*****************************************************************************************************************************************
-****************************************************************************************************************************************/
-
-
+******************************************************************/
 module cacheModule();
   
   `include "config.v"
-  
-  
-  /*
-  Initializing Block
+   /*
+  Initializing Block- Instantiation of lower level modules 
   */
   
   cache_mem m();
- 
   BusOperation bus();
   mesi_function mesi_function();
   file_write f();
-  
   integer evict_count,busRead,busWrite,busModify,busInvalid;
   
-  
-  /*
+   /*
   Check Cache function traverses a set to find existance of a line/way. Returns Miss or Hit with way number
   */
   function [counter_size:0]check_cache;
     input [index_size-1:0]index;
     input [tag_size-1:0]tag;
-    
     reg[associativity:0] i;
     
     begin  
@@ -88,28 +78,10 @@ module cacheModule();
      address = {tag,index,{offset_size{1'b0}}};
      PresentState = m.cache[index][way][mesi_start:mesi_end];
      {NextState,BusOp} = mesi_function.mesi(PresentState,command,snoopResult);
-     
-
-    /* if(NextState == PresentState)
-       begin
-         case(PresentState)
-           Exclusive: 
-           begin
-             if((snoopResult==HIT)||(snoopResult==HITM))
-               $display("Unexpected HIT or HITM in Exclusive State. Initial response was NoHIT");
-           end
-           
-           Shared:
-           begin
-             if(snoopResult==NoHIT)
-               $display("Unexpected NoHIT in Shared State. Initial response was HIT or HITM");
-           end
-         endcase
-       end*/
-   
+       
      if(NextState == Invalid)
        begin
-         dummy = c.invalidate_lru(index,way);
+              dummy = c.invalidate_lru(index,way);
               dummy= f.L1_display("I",address);
               dummy= f.L1_display("I",address+add_size);
        end
@@ -171,27 +143,24 @@ module cacheModule();
       
       index=Address[index_size+offset_size-1:offset_size];
       tag=Address[(add_size-1):(index_size+offset_size)];
-      result = check_cache(index,tag);          // checks if address is in cache
+      result = check_cache(index,tag); //checks if address is in cache
       
-      if(result[0])                             // if yes then check for modified state to send HITM else send HIT
+      if(result[0]) // if yes then check for modified state to send HITM else send HIT
       
         if(m.cache[index][result[3:1]][mesi_start:mesi_end] == Modified)
           PutSnoopResult = HITM;
         else
           PutSnoopResult = HIT;
-      else                                      // if no then sends No HIT
+      else                                // if no then sends No HIT
       PutSnoopResult = NoHIT;                  
     end
   endfunction
 /******************************
 Snoop Functions ends
 ******************************/ 
-
-
   
-  /*
-  LRU increments the counter of all the ways and makes the accessed way 0.
-  */  
+/*LRU increments the counter of all the ways and makes the accessed way 0. */  
+
   function update_LRU;
     input [index_size-1:0]index;
     input [counter_size-1:0]way;
@@ -210,13 +179,11 @@ Snoop Functions ends
               m.cache[index][i][LRU_start:LRU_end] = m.cache[index][i][LRU_start:LRU_end]+1;
           end
         end
-      //counter_size not allowed in replication. counter_size includes $ln operation. Treats it as zero somehow
-      m.cache[index][way][LRU_start:LRU_end]={counter_size{1'b0}};
+       m.cache[index][way][LRU_start:LRU_end]={counter_size{1'b0}};
       update_LRU = 1'b1;
     end
   endfunction
-   
-  
+     
   /*
   this function writes the tag bit at mentioned index and way 
   */ 
@@ -266,15 +233,13 @@ Snoop Functions ends
       end
   endfunction
   
+   /*  this function directly evicts the data from the cache and makes the state as invalid  */
 
-  
-  /*
-  this function directly evicts the data from the cache and makes the state as invalid
-  */
   function evict_way;
     input [index_size-1:0]index; 
     input [counter_size-1:0]way;
     integer i;
+    reg dummy;
     reg[add_size-1:0] address;
      begin
        address = {m.cache[index][way][tag_size-1:0],index,{offset_size{1'b0}}};
@@ -282,13 +247,13 @@ Snoop Functions ends
         begin
         if(!bus.busWrite(address))
           $display("Bus write error");
-          if(L1_cache_comm)
-            begin
-            $display("L1_cache I %h",address);
-            $display("L1_cache I %h",(address+add_size));
-          end
-            
+               
         end
+        
+        
+            dummy = f.L1_display("I",address);
+            dummy = f.L1_display("I",address+add_size);
+        
         m.cache[index][way][mesi_start:mesi_end] = Invalid;
         m.cache[index][way][LRU_start:LRU_end] = {counter_size{1'bx}};
         evict_count = evict_count + 1;
@@ -296,10 +261,7 @@ Snoop Functions ends
      end 
   endfunction 
   
-  
-  /*
-  Clears the cache by making all lines invalid
-  */
+   /*  Clears the cache by making all lines invalid  */
   function clearCache;
     input dummy;
     integer i,j;
@@ -329,15 +291,12 @@ Snoop Functions ends
         begin
         for(i=0;i<associativity;i=i+1)
           begin
-            if(m.cache[j][i][mesi_start:mesi_end] != Invalid)//l.LRU_mem[j][i]
+    if(m.cache[j][i][mesi_start:mesi_end] != Invalid)
               dummy = f.cache_display(j,i,m.cache[j][i][mesi_start:mesi_end],m.cache[j][i][tag_size-1:0],m.cache[j][i][LRU_start:LRU_end]);
           end
         end
         dummy = f.string_display("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-      
       print = 1'b1;
     end
   endfunction   
-   
-
-endmodule
+  endmodule

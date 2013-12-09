@@ -1,16 +1,13 @@
-/****************************************************************************************************************************************
-*****************************************************************************************************************************************
-Configuration File. Contains parameters, defination of essential variables 
-*****************************************************************************************************************************************
-****************************************************************************************************************************************/
-
+/*********************************************************************
+config.v - Configuration File. Contains parameters, defination of essential variables 
+******************************************************************/
 //Display Options 
-parameter transout = 0,               //Set to Disable output to Transcript 
-          fileop = 1,                 //Set to Enable file oputput
-          L1_cache_comm = 1,          //Set to Enable L1 Communication Display
-          snoopResult = 1,            //Set to Enable Snoop Result Display
-          busOperation = 1,           //Set to Enable Bus Operations Display
-          debug = 0;                  //Displays additional debug info 
+parameter transout = 0,       //Set to Disable output to Transcript 
+          fileop = 1,         //Set to Enable file oputput
+          L1_cache_comm = 1,  //Set to Enable L1 Communication Display
+          snoopResult = 1,    //Set to Enable Snoop Result Display
+          busOperation = 1,   //Set to Enable Bus Operations Display
+          debug = 0;          //Displays additional debug info 
           
 //Cache Size Parameters
 parameter add_size = 32,                //Address Size
@@ -30,17 +27,14 @@ parameter Modified = 2'b00,
           Exclusive = 2'b01,
           Shared = 2'b10,
           Invalid = 2'b11;
-
 parameter NoHIT = 2'b00,
           HIT   = 2'b01,
           HITM  = 2'b10;
-
 parameter nothing = 2'bxx,
           invalidate = 2'b00,
           memoryRead = 2'b01,
           memoryWrite = 2'b10,
           RFO = 2'b11;
-
 parameter R = 0,
           W = 1,
           M = 2,
@@ -56,8 +50,6 @@ parameter L1_DataCacheRead = 0,
           SnoopRFO = 6,
           ClearCache = 8,
           PrintCache = 9;
-
-
 
 //Constants to access cache bits
 parameter mesi_start = mesi_bits+counter_size+tag_size-1,
