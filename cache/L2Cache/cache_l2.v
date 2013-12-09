@@ -2,7 +2,7 @@
 cache_l2.v
 ECE 585 Fall 2013 - L2 Cache Simulation Project
 By
-Sameer Ghewari, Sanket Borhade, Robert Brown
+Sanket Borhade, Sameer Ghewari, Robert Brown
 Main module file which takes input as trace file and simulates the L2 cache.
 The parameters of the L2 cache can be set in the conf.v file. 
 *********************************************************************/
@@ -42,8 +42,6 @@ reg [1:0]SnoopResult;
 reg dummy;
 initial
   begin
-    
-    
     //Input trace file name from command line. If no file specified, display error. 
     if ($value$plusargs("TRACE=%s", testname)) 
 begin
@@ -69,7 +67,7 @@ eof = $feof(data_file);
         scan_file = $fscanf(data_file,"%h\n", address); 
         eof = $feof(data_file);
       
-      if( (address==={add_size{1'bx}}) && ((command!=ClearCache)||(command!=PrintCache)||(command!=4'b0111)))
+        if( (address==={add_size{1'bx}}) && ((command!=ClearCache)||(command!=PrintCache)||(command!=4'b0111)))
         begin
            dummy = f.string_display("Error in Trace File. Missing address. Please provide correct trace file.");
       
@@ -88,194 +86,189 @@ eof = $feof(data_file);
           end
   
       case(command)
-L1_DataCacheRead: begin
-readOp = readOp + 1;
-result = c.check_cache(index,tag); //Call Check Cache Function  
-			
- SnoopResult = c.GetSnoopResult(address,R); 
-if(!result[0])    
-//if its not hit, then get it from memory
-            begin
-              dummy=f.L1_display("M",address); 
-              way = c.empty_way(index); 
-              if(way === 3'bxxx)
-                begin
-                  way = c.find_evict_way(index);
-                  dummy = c.evict_way(index,way);
-                end
-               dummy = c.cache_write(index,tag,way);
-              if(c.update_mesi(index,tag,way,command,SnoopResult))
-                dummy = c.update_LRU(index,way);
-              else
-                $display("Error in mesi function");
-            end
-          else        //If hit increment hit count
-            begin
-              hitCount = hitCount + 1;
-              dummy=f.L1_display("H",address); 
-              dummy=c.update_mesi(index,tag,result[3:1],command,SnoopResult);         
-              dummy = c.update_LRU(index,result[3:1]);
-            end
-          //Call Cache Write
-        end
+        L1_DataCacheRead: begin
+                          readOp = readOp + 1;
+                          result = c.check_cache(index,tag); //Call Check Cache Function  
+    			
+                          SnoopResult = c.GetSnoopResult(address,R); 
+                          if(!result[0])    
+                          //if its not hit, then get it from memory
+                          begin
+                            dummy=f.L1_display("M",address); 
+                            way = c.empty_way(index); 
+                            if(way === 3'bxxx)
+                            begin
+                              way = c.find_evict_way(index);
+                              dummy = c.evict_way(index,way);
+                            end
+                            dummy = c.cache_write(index,tag,way);
+                            if(c.update_mesi(index,tag,way,command,SnoopResult))
+                              dummy = c.update_LRU(index,way);
+                            else
+                              $display("Error in mesi function");
+                            end
+                          else        //If hit increment hit count
+                              begin
+                                hitCount = hitCount + 1;
+                                dummy=f.L1_display("H",address); 
+                                dummy=c.update_mesi(index,tag,result[3:1],command,SnoopResult);         
+                                dummy = c.update_LRU(index,result[3:1]);
+                              end
+                          //Call Cache Write
+                          end
          
         L1_DataCacheWrite: begin
-          
-            writeOp = writeOp + 1;
-            //Call Check Cache Function
-            result = c.check_cache(index,tag);
-            if(!result[0])
-              begin
-                dummy=f.L1_display("M",address);
-                way = c.empty_way(index);
-                if(way === 3'bxxx)// all ways are filled
-                  begin
-                 way = c.find_evict_way(index);
-                dummy = c.evict_way(index,way);
-                end
-
-                 
-                dummy = c.cache_write(index,tag,way);
-               if(c.update_mesi(index,tag,way,command,c.GetSnoopResult(address,W)))
-                dummy = c.update_LRU(index,way);
-                //Else Call Bus Operation function
-                //Call Cache Write
-               end
-              //If Hit Call Cache Write Function
-            else
-              begin
-                hitCount = hitCount + 1;
-                dummy=f.L1_display("H",address); 
-                dummy = c.cache_write(index,tag,result[3:1]);
-                if(c.update_mesi(index,tag,result[3:1],command,c.GetSnoopResult(address,W)))
-                  dummy = c.update_LRU(index,result[3:1]);
-              end 
-        end
+                             writeOp = writeOp + 1;
+                             //Call Check Cache Function
+                             result = c.check_cache(index,tag);
+                              if(!result[0])
+                              begin
+                                dummy=f.L1_display("M",address);
+                                way = c.empty_way(index);
+                                if(way === 3'bxxx)// all ways are filled
+                                begin
+                                 way = c.find_evict_way(index);
+                                 dummy = c.evict_way(index,way);
+                                end
+                                dummy = c.cache_write(index,tag,way);
+                                if(c.update_mesi(index,tag,way,command,c.GetSnoopResult(address,W)))
+                                dummy = c.update_LRU(index,way);
+                              //Else Call Bus Operation function
+                              //Call Cache Write
+                             end
+                          //If Hit Call Cache Write Function
+                            else
+                              begin
+                              hitCount = hitCount + 1;
+                              dummy=f.L1_display("H",address); 
+                              dummy = c.cache_write(index,tag,result[3:1]);
+                              if(c.update_mesi(index,tag,result[3:1],command,c.GetSnoopResult(address,W)))
+                              dummy = c.update_LRU(index,result[3:1]);
+                              end 
+                            end
                
-L1_InstructionCacheRead: begin
-                  readOp = readOp + 1;
-//Call Check Cache Function
-                  result = c.check_cache(index,tag);
-//If hit increment hit count
-//else do bus operation
-                  if(!result[0])
-  begin
-    dummy=f.L1_display("M",address);
-    way = c.empty_way(index);
-    if(way === 3'bxxx)
-      begin
-      way = c.find_evict_way(index);
-      dummy = c.evict_way(index,way);
-      end
-       
-    dummy = c.cache_write(index,tag,way);
-    if(c.update_mesi(index,tag,way,command,c.GetSnoopResult(address,R)))
-      dummy = c.update_LRU(index,way);
-    else
-      $display("Error in mesi function");
-  end
-   else
-  begin
-    hitCount = hitCount + 1;
-    dummy=f.L1_display("H",address); 
-    dummy=c.update_mesi(index,tag,result[3:1],command,SnoopResult); 
-    dummy = c.update_LRU(index,result[3:1]);
-  end
-  //Call Cache Write
-                end
+    L1_InstructionCacheRead: begin
+                              readOp = readOp + 1;
+                              //Call Check Cache Function
+                              result = c.check_cache(index,tag);
+                              //If hit increment hit count
+                              //else do bus operation
+                              if(!result[0])
+                              begin
+                                dummy=f.L1_display("M",address);
+                                way = c.empty_way(index);
+                                if(way === 3'bxxx)  
+                                begin
+                                way = c.find_evict_way(index);
+                                dummy = c.evict_way(index,way);
+                                end
+         
+                                dummy = c.cache_write(index,tag,way);
+                                if(c.update_mesi(index,tag,way,command,c.GetSnoopResult(address,R)))
+                                dummy = c.update_LRU(index,way);
+                                else
+                                  $display("Error in mesi function");
+                                end
+                             else
+                              begin
+                                hitCount = hitCount + 1;
+                                dummy=f.L1_display("H",address); 
+                                dummy=c.update_mesi(index,tag,result[3:1],command,SnoopResult); 
+                                dummy = c.update_LRU(index,result[3:1]);
+                              end
+                              //Call Cache Write
+                            end
         SnoopInvalidateRequest: begin
-                //Call Check Cache 
-                result = c.check_cache(index,tag);
-                //Call Put Snoop Function 
-                if(result[0])
-                  begin
-                  //Call MESI
-              dummy = c.update_mesi(index,tag,result[3:1],command,c.GetSnoopResult(address,I)); 
-              end
-                end
-        
-        SnoopReadRequest: begin
-          //Call Check Cache
-          result = c.check_cache(index,tag);
-          //Call Put Snoop Function 
-
-          case(c.PutSnoopResult(address,R))
-              HIT:begin
-                  dummy=f.snoop_display("SR HIT");
-                  end
-              
-              NoHIT:begin
-                 dummy=f.snoop_display("SR NoHIT");
-                   end
-              
-              HITM:begin
-               dummy=f.snoop_display("SR HITM");
-                   end
-            endcase
-          if(result[0])
-             //Call MESI
-             dummy = c.update_mesi(index,tag,result[3:1],command,HIT);
-         end
-                
-  SnoopWriteRequest: begin
-          //Call Check Cache
-          result = c.check_cache(index,tag);
-          //Call Put Snoop Function 
+                                //Call Check Cache 
+                                result = c.check_cache(index,tag);
+                                //Call Put Snoop Function 
+                                if(result[0])
+                                begin
+                                //Call MESI
+                                  dummy = c.update_mesi(index,tag,result[3:1],command,c.GetSnoopResult(address,I)); 
+                                end
+                                end
           
-          if(result[0])
-             //Call MESI
-          dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
-          end
+        SnoopReadRequest: begin
+                            //Call Check Cache
+                            result = c.check_cache(index,tag);
+                            //Call Put Snoop Function 
+  
+                            case(c.PutSnoopResult(address,R))
+                              HIT:begin
+                                  dummy=f.snoop_display("SR HIT");
+                                  end
+              
+                              NoHIT:begin
+                                   dummy=f.snoop_display("SR NoHIT");
+                                   end
+              
+                              HITM:begin
+                                   dummy=f.snoop_display("SR HITM");
+                                   end
+                            endcase
+                            if(result[0])
+                             //Call MESI
+                             dummy = c.update_mesi(index,tag,result[3:1],command,HIT);
+                           end
+                
+        SnoopWriteRequest: begin
+                            //Call Check Cache
+                            result = c.check_cache(index,tag);
+                            //Call Put Snoop Function 
+          
+                            if(result[0])
+                           //Call MESI
+                            dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
+                            end
                 
         SnoopRFO: begin 
-        //Call Check Cache 
-          result = c.check_cache(index,tag);
-          //Call Put Snoop Function 
-          case(c.PutSnoopResult(address,M))
-              HIT:begin
-                  dummy=f.snoop_display("SR HIT");
-                  end
+                      //Call Check Cache 
+                      result = c.check_cache(index,tag);
+                      //Call Put Snoop Function 
+                      case(c.PutSnoopResult(address,M))
+                        HIT:begin
+                            dummy=f.snoop_display("SR HIT");
+                            end
               
-              NoHIT:begin
-              dummy=f.snoop_display("SR NoHIT");
-            end
+                        NoHIT:begin
+                            dummy=f.snoop_display("SR NoHIT");
+                            end
               
-              HITM:begin
-              dummy=f.snoop_display("SR HITM");
-             end
-            endcase
-          if(result[0])
-             //Call MESI
-          dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
-               end
+                        HITM:begin
+                            dummy=f.snoop_display("SR HITM");
+                           end
+                      endcase
+                        if(result[0])
+                         //Call MESI
+                          dummy = c.update_mesi(index,tag,result[3:1],command,NoHIT);
+                         end
                
         ClearCache: begin
-    //Clear all lines
+                    //Clear all lines
                  
-                dummy=f.stats_display(hitCount,readOp,writeOp);
-                hitCount = 0; readOp = 0; writeOp = 0;
-                dummy = c.clearCache(0);
-               end
+                    dummy=f.stats_display(hitCount,readOp,writeOp);
+                    hitCount = 0; readOp = 0; writeOp = 0;
+                    dummy = c.clearCache(0);
+                   end
                
         PrintCache: begin
-     //Call print function
-     dummy = c.print(0);
-                end 
+                   //Call print function
+                   dummy = c.print(0);
+                    end 
                 
         default:begin
-    dummy = f.string_display("This Command is not supported by the current version. Please contact us");
+                dummy = f.string_display("This Command is not supported by the current version. Please contact us");
                 end
       endcase
       
-     if(debug)
-      dummy = c.print(0);
-  end
+       if(debug)
+        dummy = c.print(0);
+      end
   
- $fclose(data_file);
-  
-   dummy=f.stats_display(hitCount,readOp,writeOp);
-  
-  dummy = f.string_display("xxxxxxxxxxxxxxx END OF TRACE FILE xxxxxxxxxxxxxxx \n\n\n\n");
+      $fclose(data_file);
+      dummy=f.stats_display(hitCount,readOp,writeOp);
+      dummy = f.string_display("xxxxxxxxxxxxxxx END OF TRACE FILE xxxxxxxxxxxxxxx \n\n\n\n");
   
 end
   
